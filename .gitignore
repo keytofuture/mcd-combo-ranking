@@ -1,0 +1,5 @@
+.mcd-live/
+node_modules/
+*.log
+.shots/
+.preview/

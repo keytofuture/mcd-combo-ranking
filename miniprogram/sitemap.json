@@ -1,0 +1,4 @@
+{
+  "description": "演示项目，全部页面允许索引",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

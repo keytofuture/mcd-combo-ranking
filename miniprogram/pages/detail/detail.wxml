@@ -1,0 +1,120 @@
+<!-- P02 套餐详情：折扣与组成平铺，出处折叠 -->
+<view class="dt-head">
+  <view class="dt-name">{{item.name}}</view>
+  <view class="dt-sub">{{src.store}} · {{src.channelLabel}}</view>
+  <view class="dt-big">
+    <text class="p">¥{{item.priceText}}</text>
+    <block wx:if="{{comparable}}">
+      <text class="d">单买 ¥{{item.denominatorText}}</text>
+      <text class="pill">{{item.discountText}}</text>
+    </block>
+    <text class="tag tag-gray" wx:else>暂不可比</text>
+  </view>
+</view>
+
+<view class="pad" style="padding-top: 0">
+  <!-- 可比：折扣算式 -->
+  <view class="card" wx:if="{{comparable}}">
+    <view class="card-pad">
+      <view class="formula">
+        <view class="eq">
+          <text>¥{{item.priceText}} ÷ ¥{{item.denominatorText}} = </text>
+          <text class="hl">{{item.discountText}}</text>
+        </view>
+        <view class="why">分开买 ¥{{item.denominatorText}}，打包 ¥{{item.priceText}}，少花 {{item.savedAmountPlain}}</view>
+      </view>
+      <view style="margin-top: 24rpx">
+        <view class="kv">
+          <text class="k">套餐实付价 P</text>
+          <text class="v">¥{{item.priceText}}</text>
+        </view>
+        <view class="kv">
+          <text class="k">逐项单买合计 D</text>
+          <text class="v">¥{{item.denominatorText}}</text>
+        </view>
+        <view class="kv">
+          <text class="k">省下</text>
+          <text class="v" style="color: #e8392f">{{item.savedAmountPlain}}（{{item.savedPercentText}}）</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 不可比：说清原因 -->
+  <view class="card" wx:else>
+    <view class="card-pad">
+      <view class="card-h">为什么没算进榜</view>
+      <view class="reason-tags">
+        <text class="rtag" wx:for="{{item.reasonTexts}}" wx:for-item="r" wx:key="*this">{{r}}</text>
+      </view>
+      <view class="muted" style="line-height: 1.7; margin-top: 14rpx">{{reasonExplain}}</view>
+    </view>
+  </view>
+
+  <!-- 默认组成 -->
+  <view class="card">
+    <view class="card-pad">
+      <view class="card-h">默认组成 · {{item.componentCount}} 项</view>
+      <view class="comp" wx:for="{{item.components}}" wx:key="name">
+        <view class="l">
+          <view class="t">
+            <text>{{item.name}}</text>
+            <text class="q">{{item.quantityText}}</text>
+            <text class="tag tag-green" wx:if="{{item.isGift}}">赠品</text>
+          </view>
+          <view class="x" wx:if="{{item.sourceNote}}">{{item.sourceNote}}</view>
+        </view>
+        <view class="r">
+          <text class="un" wx:if="{{item.missing}}">未单独售卖</text>
+          <block wx:else>
+            <view class="u">{{item.unitPriceText}}</view>
+            <view class="s" wx:if="{{item.subtotalText}}">{{item.subtotalText}}</view>
+          </block>
+        </view>
+      </view>
+      <view class="total">
+        <text>{{comparable ? '逐项合计' : '已知部分小计'}}</text>
+        <text class="v">{{comparable ? '¥' + item.denominatorText : item.knownSumText}}</text>
+      </view>
+      <view
+        class="tiny"
+        wx:if="{{!comparable && item.missingCount}}"
+        style="text-align: right; margin-top: 12rpx"
+      >还有 {{item.missingCount}} 项没单独标价，所以这个数不是完整的单买合计</view>
+    </view>
+  </view>
+
+  <!-- 出处：默认折叠 -->
+  <view class="fold">
+    <view class="fold-head" bindtap="onToggleEvidence">
+      <text class="t">这条数据的出处</text>
+      <text class="hint">{{src.observedDisplay}}</text>
+      <view class="chev {{showEvidence ? 'open' : ''}}">›</view>
+    </view>
+    <view class="fold-body" wx:if="{{showEvidence}}">
+      <view class="kv">
+        <text class="k">报价时间</text>
+        <text class="v">{{src.observedDisplay}}</text>
+      </view>
+      <view class="kv">
+        <text class="k">门店</text>
+        <text class="v">{{src.store}}</text>
+      </view>
+      <view class="kv">
+        <text class="k">套餐编码</text>
+        <text class="v">{{item.id}}</text>
+      </view>
+      <view class="kv">
+        <text class="k">套餐价来源</text>
+        <text class="v">{{priceSourceText}}</text>
+      </view>
+      <view class="kv">
+        <text class="k">菜单标称原价</text>
+        <text class="v">{{item.menuOriginalText || '—'}}</text>
+      </view>
+      <view class="tiny" style="margin-top: 20rpx; line-height: 1.65">
+        菜单标称原价只作参考，不参与计算。折扣一律用逐项单买合计 D 做分母。
+      </view>
+    </view>
+  </view>
+</view>

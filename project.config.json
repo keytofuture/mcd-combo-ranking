@@ -1,0 +1,13 @@
+{
+  "description": "麦麦套餐折扣榜（demo 模式）。在微信开发者工具中导入本目录（项目根），AppID 可先选测试号。",
+  "miniprogramRoot": "miniprogram/",
+  "appid": "touristappid",
+  "projectname": "mcd-price-monitor",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false
+  },
+  "compileType": "miniprogram"
+}

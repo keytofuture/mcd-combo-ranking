@@ -1,0 +1,60 @@
+/* pages/ranking/ranking.wxss — 共享样式见 app.wxss，本页只补榜单特有细节 */
+page {
+  /* 给自定义 tabBar 留出空间 */
+  padding-bottom: calc(130rpx + env(safe-area-inset-bottom));
+}
+
+.storebar {
+  padding-top: 20rpx;
+}
+
+/* 「打包买反而更贵」——不进榜，但要让人看见 */
+.unfav {
+  margin: 24rpx 32rpx 0;
+  padding: 20rpx 26rpx 10rpx;
+  background: #ffffff;
+  border-radius: 28rpx;
+  box-shadow: 0 2rpx 4rpx rgba(70, 45, 20, 0.05), 0 12rpx 36rpx rgba(70, 45, 20, 0.05);
+}
+.unfav-head {
+  margin-bottom: 6rpx;
+  font-size: 23rpx;
+  font-weight: 600;
+  color: #8a7561;
+}
+.unfav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 16rpx 0;
+}
+.unfav-item:not(:first-child) {
+  border-top: 1rpx solid #f0e9e0;
+}
+.unfav-item .l {
+  flex: 1;
+  min-width: 0;
+}
+.unfav-item .n {
+  font-size: 28rpx;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.unfav-item .w {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  color: #9aa0a8;
+  font-variant-numeric: tabular-nums;
+}
+.unfav-item .tag {
+  flex: 0 0 auto;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #fdf1dd;
+  color: #8a5a12;
+  font-size: 22rpx;
+  font-weight: 700;
+}

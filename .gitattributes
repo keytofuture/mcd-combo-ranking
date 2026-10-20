@@ -1,0 +1,3 @@
+# 关闭行尾自动转换：CONTEST_DECLARATION.md 要求文件名与内容一字不改，
+# 任何 CRLF/LF 归一化都会改变文件字节，因此全部按原样存储。
+* -text

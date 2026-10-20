@@ -1,0 +1,27 @@
+{
+  "pages": [
+    "pages/ranking/ranking",
+    "pages/detail/detail",
+    "pages/source/source"
+  ],
+  "window": {
+    "navigationBarTitleText": "套餐折扣榜",
+    "navigationBarBackgroundColor": "#f6f1ea",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6f1ea",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9aa0a8",
+    "selectedColor": "#e8392f",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/ranking/ranking", "text": "套餐榜" },
+      { "pagePath": "pages/source/source", "text": "数据来源" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

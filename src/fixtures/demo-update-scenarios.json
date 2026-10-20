@@ -1,0 +1,147 @@
+{
+  "mode": "demo",
+  "note": "按需更新场景（v1.1 PRD R08/R09/R10/R11、T16—T21、T25、T29、T30）。全部为合成数据，不代表真实接口行为。",
+  "base": {
+    "ownerRef": "demo-owner",
+    "mode": "demo",
+    "contexts": [
+      { "id": "ctx-pickup-demo", "version": 1, "channel": "pickup" },
+      { "id": "ctx-delivery-demo", "version": 1, "channel": "delivery" }
+    ],
+    "requestedAt": "2026-10-16T04:00:00.000Z",
+    "finishedAt": "2026-10-16T04:02:00.000Z"
+  },
+  "cases": [
+    {
+      "id": "T16",
+      "kind": "nonTrigger",
+      "title": "打开、返回前台、下拉刷新、切渠道、进详情：只读，MCP 调用增量为 0",
+      "operations": [
+        "readPriceContexts",
+        "readComboRanking",
+        "readComboDetail",
+        "readUpdateStatus"
+      ],
+      "events": ["app_launch", "page_open", "page_refresh", "pull_to_refresh", "foreground", "cache_expired", "relogin"],
+      "expected": { "allReadOpsCannotStart": true, "triggerOperationCanStart": true }
+    },
+    {
+      "id": "T17",
+      "kind": "register",
+      "title": "用户主动点击一次更新 -> 一个请求 + 两个独立渠道批次",
+      "idempotencyKey": "idem-20261016-0001",
+      "expected": { "created": true, "batchCount": 2, "uniqueContextVersionPerRequest": true }
+    },
+    {
+      "id": "T18-same-key",
+      "kind": "idempotency",
+      "title": "同幂等键重试（响应丢失）-> 返回原请求，不重复创建批次",
+      "scenario": "sameKeyRetry",
+      "idempotencyKey": "idem-20261016-0001",
+      "expected": { "created": false, "reason": "SAME_IDEMPOTENCY_KEY", "batchCountCreated": 0 }
+    },
+    {
+      "id": "T18-active",
+      "kind": "idempotency",
+      "title": "已有活动请求（不同键）-> 返回其标识与状态，不新建一轮",
+      "scenario": "activeRequestExists",
+      "idempotencyKey": "idem-20261016-0002",
+      "expected": { "created": false, "reason": "ACTIVE_REQUEST_EXISTS", "batchCountCreated": 0 }
+    },
+    {
+      "id": "T19",
+      "kind": "publishPerChannel",
+      "title": "自取成功、外送失败：自取发布新榜，外送保留自己的上次结果/空态，不串价",
+      "batches": { "pickup": "completed", "delivery": "failed" },
+      "expectDeliveryHasPrevious": true,
+      "expected": {
+        "pickupPublished": true,
+        "pickupDisplay": "current_snapshot",
+        "deliveryPublished": false,
+        "deliveryDisplay": "previous_result"
+      }
+    },
+    {
+      "id": "T20",
+      "kind": "displayWhileRunning",
+      "title": "本次运行中 -> 仅显示旧完整快照，运行中报价不混入",
+      "publishedStatus": "completed",
+      "activeStatus": "running",
+      "expected": { "displayState": "previous_result", "isStale": true, "publishedBatchIdUnchanged": true }
+    },
+    {
+      "id": "T21-with-previous",
+      "kind": "publishFailed",
+      "title": "本次 failed，有旧榜：保留带时间的上次结果，不声称更新成功",
+      "hasPrevious": true,
+      "expected": { "published": false, "displayState": "previous_result" }
+    },
+    {
+      "id": "T21-no-previous",
+      "kind": "publishFailed",
+      "title": "本次 blocked，无旧榜：空态",
+      "hasPrevious": false,
+      "expected": { "published": false, "displayState": "empty" }
+    },
+    {
+      "id": "T25-cursor",
+      "kind": "cursor",
+      "title": "翻页中发布新批：旧游标继续旧快照，或明确报失效，不混排名",
+      "cursorBatch": "b-old",
+      "latestBatch": "b-new",
+      "retainedBatchIds": ["b-old", "b-new"],
+      "expected": { "valid": true, "useBatchId": "b-old", "reason": "CONTINUE_OLD_SNAPSHOT" }
+    },
+    {
+      "id": "T25-snapshot",
+      "kind": "snapshot",
+      "title": "所点快照已清理：明确报失效，不悄悄替换",
+      "snapshotId": "snap-gone",
+      "available": ["snap-1", "snap-2"],
+      "expected": { "state": "expired", "reason": "SNAPSHOT_EXPIRED" }
+    },
+    {
+      "id": "T29-budget",
+      "kind": "bounded",
+      "title": "预算耗尽：不再发新请求，按已有证据结束",
+      "scenario": "budget",
+      "expected": { "stop": true, "reasonCode": "BUDGET_EXCEEDED" }
+    },
+    {
+      "id": "T29-timeout",
+      "kind": "bounded",
+      "title": "执行超时：按已有证据结束批次",
+      "scenario": "timeout",
+      "expected": { "stop": true, "reasonCode": "EXECUTION_TIMEOUT" }
+    },
+    {
+      "id": "T29-interrupt",
+      "kind": "interrupted",
+      "title": "进程中断：按已记录证据收尾为 partial/failed，不重放整批",
+      "hadEvidence": true,
+      "expected": { "status": "partial", "applied": true }
+    },
+    {
+      "id": "T29-interrupt-empty",
+      "kind": "interrupted",
+      "title": "进程中断且无证据：收尾为 failed",
+      "hadEvidence": false,
+      "expected": { "status": "failed", "applied": true }
+    },
+    {
+      "id": "T29-late",
+      "kind": "lateResponse",
+      "title": "迟到响应不得改写终态",
+      "terminalStatus": "completed",
+      "expected": { "applied": false, "reason": "TERMINAL_NOT_OVERWRITTEN" }
+    },
+    {
+      "id": "T30",
+      "kind": "freshness",
+      "title": "结果过期、长时间闲置、换日或重启：只提示旧时间/过期，不自动查询",
+      "validTo": "2026-10-16T03:00:00.000Z",
+      "nowTs": "2026-10-16T04:00:00.000Z",
+      "expected": { "validityState": "expired", "promptManualUpdate": true, "autoQuery": false }
+    }
+  ]
+}

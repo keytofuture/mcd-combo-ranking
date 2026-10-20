@@ -1,0 +1,172 @@
+{
+  "mode": "demo",
+  "currency": "CNY",
+  "note": "计算模块的单元验收输入（PRD 13.1）。全部为合成数据，不代表真实价格。",
+  "cases": [
+    {
+      "id": "A01",
+      "title": "PRD 13.1 最小示例",
+      "components": [
+        { "variantId": "demo-burger", "quantity": 1, "unitPriceCents": 2400 },
+        { "variantId": "demo-fries", "quantity": 1, "unitPriceCents": 1200 },
+        { "variantId": "demo-drink", "quantity": 1, "unitPriceCents": 1000 }
+      ],
+      "comboPriceCents": 2760,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 4600,
+        "savedCents": 1840,
+        "discountText": "6.0折",
+        "savedPercentText": "节省40%",
+        "savedAmountText": "少花¥18.40"
+      }
+    },
+    {
+      "id": "A02",
+      "title": "数量正确：1000×2 + 500×1，P=1500",
+      "components": [
+        { "variantId": "x", "quantity": 2, "unitPriceCents": 1000 },
+        { "variantId": "y", "quantity": 1, "unitPriceCents": 500 }
+      ],
+      "comboPriceCents": 1500,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 2500,
+        "discountText": "6.0折",
+        "savedPercentText": "节省40%",
+        "savedAmountText": "少花¥10.00"
+      }
+    },
+    {
+      "id": "A03",
+      "title": "比单买贵：P=3500，D=3000",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 3000 }],
+      "comboPriceCents": 3500,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 3000,
+        "discountText": null,
+        "savedPercentText": "比单买贵 16.7%",
+        "savedAmountText": "多花¥5.00"
+      }
+    },
+    {
+      "id": "A05",
+      "title": "与单买同价：P=D=3000（T03）",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 3000 }],
+      "comboPriceCents": 3000,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 3000,
+        "discountText": null,
+        "savedPercentText": "与单买同价",
+        "savedAmountText": "¥0.00"
+      }
+    },
+    {
+      "id": "A04",
+      "title": "必需组件缺价：不给折扣与名次",
+      "components": [
+        { "variantId": "x", "quantity": 1, "unitPriceCents": 2400 },
+        { "variantId": "y", "quantity": 1, "unitPriceCents": null }
+      ],
+      "comboPriceCents": 2760,
+      "expected": {
+        "eligible": false,
+        "denominatorCents": null,
+        "reasonContains": "COMPONENT_PRICE_MISSING"
+      }
+    },
+    {
+      "id": "A06",
+      "title": "配送费另列，不并入折扣：P=2000，D=4000，配送600",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 4000 }],
+      "comboPriceCents": 2000,
+      "deliveryFeeCents": 600,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 4000,
+        "discountText": "5.0折",
+        "savedPercentText": "节省50%",
+        "savedAmountText": "少花¥20.00"
+      }
+    },
+    {
+      "id": "A13a",
+      "title": "分母为 0：不计算",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 0 }],
+      "comboPriceCents": 500,
+      "expected": {
+        "eligible": false,
+        "denominatorCents": 0,
+        "reasonContains": "DENOMINATOR_NOT_POSITIVE"
+      }
+    },
+    {
+      "id": "A13b",
+      "title": "合法零元：P=0 且 D>0，R=0",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 1000 }],
+      "comboPriceCents": 0,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 1000,
+        "savedCents": 1000,
+        "discountText": "0.0折",
+        "savedPercentText": "节省100%",
+        "savedAmountText": "少花¥10.00"
+      }
+    },
+    {
+      "id": "A26",
+      "title": "第二份半价：独立单份1000，套餐含2份，D=2000（非合购价1500）",
+      "components": [{ "variantId": "x", "quantity": 2, "unitPriceCents": 1000 }],
+      "comboPriceCents": 1500,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 2000,
+        "discountText": "7.5折",
+        "savedPercentText": "节省25%",
+        "savedAmountText": "少花¥5.00"
+      }
+    },
+    {
+      "id": "A34a",
+      "title": "half-up 舍入：P=605，D=1000 -> 6.1折",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 1000 }],
+      "comboPriceCents": 605,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 1000,
+        "discountText": "6.1折",
+        "savedPercentText": "节省39.5%",
+        "savedAmountText": "少花¥3.95"
+      }
+    },
+    {
+      "id": "A34b",
+      "title": "极小价差（便宜）：P=9996，D=10000",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 10000 }],
+      "comboPriceCents": 9996,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 10000,
+        "discountText": "接近单买价",
+        "savedPercentText": "比单买便宜不足 0.1%",
+        "savedAmountText": "少花¥0.04"
+      }
+    },
+    {
+      "id": "A34c",
+      "title": "极小价差（贵）：P=10004，D=10000",
+      "components": [{ "variantId": "x", "quantity": 1, "unitPriceCents": 10000 }],
+      "comboPriceCents": 10004,
+      "expected": {
+        "eligible": true,
+        "denominatorCents": 10000,
+        "discountText": null,
+        "savedPercentText": "比单买贵不足 0.1%",
+        "savedAmountText": "多花¥0.04"
+      }
+    }
+  ]
+}

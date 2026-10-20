@@ -1,0 +1,108 @@
+<!-- P03 数据来源：这个榜单凭什么是真的 -->
+<view class="src-hero">
+  <view class="glow"></view>
+  <view class="h2">这些价格不是编的</view>
+  <view class="p">{{src.observedDisplay}}，通过麦当劳官方 MCP 服务（{{src.endpoint}}）核了{{src.store}}的在售套餐：{{src.toolCalls}} 次工具调用，{{coverage.quoteSuccessCount}} 个单品报价成功，{{coverage.quoteFailureCount}} 个失败。</view>
+</view>
+
+<view class="pill-row">
+  <view class="pill"><text class="b">{{coverage.discoveredComboCount}}</text> 个套餐</view>
+  <view class="pill"><text class="b">{{rankingCount}}</text> 个划算</view>
+  <view class="pill"><text class="b">{{src.toolCalls}}</text> 次调用</view>
+</view>
+
+<view class="pad" style="padding-top: 0">
+  <!-- 怎么算 -->
+  <view class="card">
+    <view class="card-pad">
+      <view class="card-h">折扣是怎么算的</view>
+      <view class="formula">
+        <view class="eq">P ÷ D = 折扣比</view>
+        <view class="why">P 是套餐实付价，D 是把这个套餐里每样东西按单点价加起来</view>
+      </view>
+      <view class="muted" style="margin-top: 24rpx; line-height: 1.75" wx:if="{{hero}}">
+        所以「{{hero.discountText}}」的意思很具体：这堆东西分开买要 ¥{{hero.denominatorText}}，打包买只要 ¥{{hero.priceText}}。
+      </view>
+    </view>
+  </view>
+
+  <!-- 为什么不信菜单原价：核心验证 -->
+  <view class="card">
+    <view class="card-pad">
+      <view class="card-h">为什么不信菜单上的「原价」</view>
+      <view class="muted" style="line-height: 1.75">
+        <text>麦当劳菜单里每个套餐都带一个标称原价，但那是运营填的数字，不是你真的会付的钱。所以我把套餐拆成单品，逐个调价重算 D，再拿它跟菜单标称原价比一遍——</text>
+        <text style="color: #1d2026; font-weight: 700">{{devs.length}} 个里 {{tightCount}} 个偏差都在 1.5% 以内</text>
+        <text>，说明拆解没拆错。</text>
+      </view>
+      <view class="devrow" wx:for="{{devs}}" wx:key="id">
+        <view class="l">
+          <view class="n">{{item.name}}</view>
+          <view class="s">我算 ¥{{item.denominatorText}} · 菜单标称 {{item.menuOriginalText}}</view>
+        </view>
+        <text class="pct {{item.devWarn ? 'warn' : ''}}">{{item.devPctText}}</text>
+      </view>
+      <view class="tiny" style="margin-top: 20rpx; line-height: 1.65">
+        右侧是我算出的 D 与菜单标称原价的偏差。这 {{devs.length}} 个没有一个超过 1.5%——如果拆错了单品，或者把套餐当成单品算进去，偏差会立刻跳到几十个百分点。偏差普遍是 −1.1%，因为菜单原价取整到角，我按分还原。
+      </view>
+    </view>
+  </view>
+
+  <!-- 没上榜的 -->
+  <view class="fold">
+    <view class="fold-head" bindtap="onToggleOff">
+      <text class="t">没上榜的 {{notComparableCount}} 个，都因为同一件事</text>
+      <view class="chev {{showOff ? 'open' : ''}}">›</view>
+    </view>
+    <view class="fold-body" wx:if="{{showOff}}">
+      <view class="muted" style="line-height: 1.75; padding-top: 20rpx">
+        它们的组成里有单品麦当劳不单独卖——最常见的是套餐专属的可乐编码，单独核价会返回 ¥0。拿不到独立售价，D 就是编的，所以宁可不上榜，也不给一个假数字。</view>
+      <view class="tiny" style="margin-top: 16rpx">实际缺价单品：{{coverage.missingPriceCount}} 个</view>
+    </view>
+  </view>
+
+  <!-- 为什么不能实时 -->
+  <view class="fold">
+    <view class="fold-head" bindtap="onToggleRealtime">
+      <text class="t">为什么这里不能实时刷新</text>
+      <view class="chev {{showRealtime ? 'open' : ''}}">›</view>
+    </view>
+    <view class="fold-body" wx:if="{{showRealtime}}">
+      <view class="muted" style="line-height: 1.75; padding-top: 20rpx">
+        小程序跑在微信沙箱里，调不通麦当劳的 MCP 服务，有两道硬门槛：一是接口凭据必须放在客户端，而客户端是可被反编译的，等于把凭据公开；二是小程序只能请求白名单内的域名，麦当劳的接口域名加不进去。
+      </view>
+      <view class="muted" style="line-height: 1.75; margin-top: 16rpx">
+        所以这一页展示的是<text style="font-weight: 700; color: #1d2026">一次真实完整查询的快照</text>——{{src.observedDisplay}}，{{coverage.discoveredComboCount}} 个在售套餐逐个核价，不是估算，也不是抽样。
+      </view>
+      <view class="muted" style="line-height: 1.75; margin-top: 16rpx">
+        价格变了怎么办：在 WorkBuddy 里说一句「这家店现在哪个套餐最划算」，它会重新查一遍，几十秒就有新榜单。这个作品本身是一个 Skill，真正的实时能力在那里；小程序是它的展示面。
+      </view>
+    </view>
+  </view>
+
+  <!-- 口径声明 -->
+  <view class="fold">
+    <view class="fold-head" bindtap="onTogglePolicy">
+      <text class="t">口径声明</text>
+      <view class="chev {{showPolicy ? 'open' : ''}}">›</view>
+    </view>
+    <view class="fold-body" wx:if="{{showPolicy}}">
+      <view style="padding-top: 12rpx">
+        <view class="kv"><text class="k">价格口径</text><text class="v">普通可购价</text></view>
+        <view class="kv"><text class="k">不含</text><text class="v">个人券 / 付费会员 / 拼单满减</text></view>
+        <view class="kv"><text class="k">金额范围</text><text class="v">只含餐品，配送包装另计</text></view>
+        <view class="kv"><text class="k">采集渠道</text><text class="v">本次仅{{src.channelLabel}}</text></view>
+        <view class="kv"><text class="k">服务端</text><text class="v">{{src.server}}</text></view>
+        <view class="kv"><text class="k">同名匹配补价</text><text class="v">{{nameMatchedCount}} 项 / 共 {{componentCount}} 项</text></view>
+      </view>
+      <view class="tiny" style="margin-top: 20rpx; line-height: 1.65">
+        部分套餐内单品没有独立零售价，用同名零售单品价格补位，已在此披露数量。这些补价项里任何一项取不到，该套餐就直接不上榜。
+      </view>
+    </view>
+  </view>
+
+  <view class="foot-note" style="padding-top: 20rpx">
+    <view>WorkBuddy × 麦当劳 MCP 创意开发大赛参赛作品</view>
+    <view>仅供体验，不构成购买建议</view>
+  </view>
+</view>

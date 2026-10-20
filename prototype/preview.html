@@ -1,0 +1,3251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>麦麦套餐折扣榜 · 原型（演示数据）</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --card:#ffffff; --ink:#20242b; --ink2:#5f646d; --ink3:#9aa0a8;
+    --line:#efe7dc; --red:#e8392f; --red-deep:#c81623; --red-soft:#fdeae6;
+    --yellow:#ffc72c; --yellow-soft:#fff3d2;
+    --green:#0f9d6c; --green-soft:#e2f5ec; --blue:#3b6ef6; --blue-soft:#edf2fe;
+    --gray-soft:#f4f0e9;
+    --radius:18px; --radius-s:12px;
+    --shadow:0 1px 2px rgba(70,45,20,.05),0 8px 24px rgba(70,45,20,.06);
+    --shadow-red:0 8px 20px rgba(232,57,47,.30);
+    --spring:cubic-bezier(.34,1.4,.64,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .stage{display:flex;gap:22px;align-items:flex-start;justify-content:center;padding:22px 18px 60px;flex-wrap:wrap}
+
+  /* ---------- 手机 ---------- */
+  .phone{width:390px;max-width:100%;background:var(--card);border-radius:26px;box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;min-height:760px;border:1px solid var(--line)}
+  .topbar{background:#fff;padding:10px 16px 8px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink3)}
+  .modeBanner{background:linear-gradient(90deg,var(--yellow-soft),#ffe9b8);color:#8a6100;font-size:11.5px;padding:6px 16px;border-bottom:1px solid #f0dfae;display:flex;gap:6px;align-items:center}
+  .modeBanner b{font-weight:700}
+  .head{padding:16px 16px 12px;background:linear-gradient(180deg,#fff 0%,#fdfaf5 100%);border-bottom:1px solid var(--line)}
+  .head h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.3px}
+  .head .sub{color:var(--ink2);font-size:12.5px;margin-top:4px}
+  .chips{display:flex;background:#ece5da;border-radius:999px;padding:3px;margin-top:12px;gap:3px}
+  .chip{flex:1;border:0;background:transparent;color:var(--ink2);border-radius:999px;
+    padding:8px 12px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:inherit;
+    transition:all .22s var(--spring)}
+  .chip[aria-selected="true"]{background:#fff;color:var(--ink);font-weight:700;
+    box-shadow:0 2px 8px rgba(70,45,20,.14)}
+  .body{padding:12px 16px 88px;flex:1;background:var(--bg);overflow:auto}
+  .tabbar{display:flex;border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0}
+  .tabbar button{flex:1;border:0;background:none;padding:10px 4px 12px;font-size:12px;color:var(--ink3);
+    cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;font-family:inherit;transition:color .18s}
+  .tabbar button[aria-selected="true"]{color:var(--red);font-weight:600}
+  .tabbar .dot{width:18px;height:3px;border-radius:2px;background:transparent}
+  .tabbar button[aria-selected="true"] .dot{background:var(--red)}
+
+  /* ---------- 通用块 ---------- */
+  .card{background:var(--card);border-radius:var(--radius);padding:15px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 8px;font-size:14px;font-weight:700}
+  .muted{color:var(--ink2);font-size:12.5px}
+  .tiny{color:var(--ink3);font-size:11.5px}
+  .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .row+.row{margin-top:6px}
+  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .kv:last-child{border-bottom:0}
+  .kv span:first-child{color:var(--ink2)}
+  .kv span:last-child{font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;margin-right:5px;vertical-align:1px}
+  .tag.red{background:var(--red-soft);color:var(--red)}
+  .tag.gray{background:var(--gray-soft);color:var(--ink2)}
+  .tag.green{background:var(--green-soft);color:var(--green)}
+  .tag.blue{background:var(--blue-soft);color:var(--blue)}
+  .tag.yellow{background:var(--yellow-soft);color:#8a6100}
+
+  /* ---------- 榜单 ---------- */
+  .updatebar{background:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .btn{width:100%;border:0;border-radius:999px;padding:13px;font-size:15px;font-weight:700;font-family:inherit;
+    background:linear-gradient(135deg,var(--red),var(--red-deep));color:#fff;cursor:pointer;
+    box-shadow:var(--shadow-red);transition:transform .12s,box-shadow .2s;letter-spacing:.5px}
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{background:#d7d2c9;box-shadow:none;cursor:not-allowed}
+  .btn.secondary{background:#fff;color:var(--red);border:1.5px solid var(--red);box-shadow:none}
+  .btnHint{font-size:11.5px;color:var(--ink3);margin-top:7px;line-height:1.5}
+  .combo{display:flex;gap:12px;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:10px;
+    box-shadow:var(--shadow);cursor:pointer;border:1px solid transparent;
+    transition:transform .12s,border-color .2s}
+  .combo:active{transform:scale(.985)}
+  .combo:hover{border-color:#f3cfc9}
+  .rank{width:28px;flex:0 0 28px;height:28px;border-radius:10px;background:var(--gray-soft);color:var(--ink2);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13.5px}
+  .rank.top1{background:linear-gradient(135deg,var(--red),var(--red-deep));color:#fff;box-shadow:0 3px 8px rgba(232,57,47,.35)}
+  .rank.top2{background:#ffe1c4;color:#a35b00}
+  .rank.top3{background:#ffeec2;color:#8a6100}
+  .combo .mid{flex:1;min-width:0}
+  .combo .nm{font-weight:700;font-size:14.5px}
+  .combo .comp{color:var(--ink2);font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .combo .price{text-align:right;flex:0 0 auto}
+  .combo .p1{font-size:20px;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+  .combo .p2{font-size:11.5px;color:var(--ink3);text-decoration:line-through;font-variant-numeric:tabular-nums}
+  .deal{display:inline-block;background:var(--red-soft);color:var(--red);font-size:12.5px;font-weight:700;
+    border-radius:999px;padding:2px 9px;margin-top:4px}
+  .deal.expensive{background:var(--gray-soft);color:var(--ink2)}
+  .deal.same{background:var(--gray-soft);color:var(--ink2)}
+
+  /* ---------- Hero 第一名 ---------- */
+  .combo.hero{display:block;background:linear-gradient(135deg,#ef4b36 0%,var(--red-deep) 100%);
+    color:#fff;border:0;box-shadow:var(--shadow-red);padding:16px;position:relative;overflow:hidden}
+  .combo.hero::after{content:"";position:absolute;right:-34px;top:-34px;width:120px;height:120px;
+    border-radius:50%;background:rgba(255,199,44,.22)}
+  .combo.hero:hover{border-color:transparent}
+  .hero-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+  .hero-badge{display:inline-flex;align-items:center;gap:5px;background:var(--yellow);color:#7a4a00;
+    font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.5px}
+  .hero-deal{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .hero-name{font-size:16.5px;font-weight:700;margin-top:9px;position:relative;z-index:1}
+  .hero-comp{font-size:12px;color:rgba(255,255,255,.78);margin-top:3px;position:relative;z-index:1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hero-price{display:flex;align-items:baseline;gap:9px;margin-top:10px;position:relative;z-index:1}
+  .hero-price .hp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .hero-price .hd{font-size:12px;color:rgba(255,255,255,.75);text-decoration:line-through;font-variant-numeric:tabular-nums}
+  .hero-price .hs{font-size:12px;font-weight:700;background:rgba(255,255,255,.18);border-radius:999px;
+    padding:2px 9px;font-variant-numeric:tabular-nums}
+  .combo.hero.dim{background:linear-gradient(135deg,#4a4f58,#33373f);box-shadow:0 8px 20px rgba(30,34,40,.25)}
+  .combo.hero.dim .hero-badge{background:rgba(255,255,255,.16);color:#fff}
+
+  /* ---------- 骨架屏 ---------- */
+  .sk{border-radius:10px;background:linear-gradient(90deg,#eee7db 25%,#f8f3ea 40%,#eee7db 60%);
+    background-size:300% 100%;animation:shimmer 1.15s infinite}
+  @keyframes shimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+
+  /* ---------- 空态插画 ---------- */
+  .empty-art{width:96px;height:96px;margin:0 auto 14px;display:block}
+  .nc{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .nc .nchead{padding:11px 13px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink2);
+    display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .nc .item{padding:10px 13px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;cursor:pointer}
+  .nc .item:last-child{border-bottom:0}
+  .nc .item .why{color:var(--ink3);font-size:11.5px;margin-top:3px}
+  .empty{text-align:center;padding:46px 20px;color:var(--ink2)}
+  .empty .big{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px}
+
+  /* ---------- 数据详情折叠 ---------- */
+  .dt{padding:0}
+  .dt-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;gap:8px}
+  .dt-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:12.5px}
+  .dt-title .muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dt-chev{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--gray-soft);color:var(--ink3);
+    display:flex;align-items:center;justify-content:center;font-size:14px;transition:transform .22s var(--spring)}
+  .dt-chev.open{transform:rotate(90deg)}
+  .dt-body{padding:2px 16px 13px;border-top:1px dashed var(--line)}
+  .dt-body .kv:first-child{padding-top:10px}
+  .warnline{background:var(--yellow-soft);color:#7a5a00;border-radius:12px;padding:8px 13px;font-size:12px;
+    margin-bottom:10px;font-weight:500}
+
+  /* ---------- 详情 ---------- */
+  .back{border:0;background:none;color:var(--blue);font-size:13px;padding:0 0 10px;cursor:pointer;font-family:inherit}
+  .formula{background:var(--gray-soft);border-radius:10px;padding:10px 12px;font-variant-numeric:tabular-nums;font-size:13px;text-align:center}
+  .formula b{color:var(--red);font-size:15px}
+  .comp-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .comp-row:last-child{border-bottom:0}
+  .comp-row .l{color:var(--ink)}
+  .comp-row .r{font-variant-numeric:tabular-nums;text-align:right;flex:0 0 auto}
+  .strike{text-decoration:line-through;color:var(--ink3);font-size:11.5px;margin-left:5px}
+
+  /* ---------- 状态页 ---------- */
+  .st-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .st-row:last-child{border-bottom:0}
+  .pill{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .pill.completed{background:var(--green-soft);color:var(--green)}
+  .pill.partial{background:var(--yellow-soft);color:#8a6100}
+  .pill.failed{background:var(--red-soft);color:var(--red)}
+  .pill.blocked{background:var(--gray-soft);color:var(--ink2)}
+  .pill.running{background:var(--blue-soft);color:var(--blue)}
+  .note{border-left:3px solid var(--yellow);background:var(--yellow-soft);padding:8px 11px;border-radius:0 10px 10px 0;font-size:12px;color:#7a5a00;margin-top:8px}
+
+  /* ---------- 评审面板 ---------- */
+  .review{width:310px;max-width:100%;background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px;border:1px solid var(--line)}
+  .review h2{margin:0 0 4px;font-size:14px}
+  .review .desc{font-size:12px;color:var(--ink2);margin-bottom:12px}
+  .review .grp{margin-top:12px}
+  .review .grp>label{display:block;font-size:11.5px;color:var(--ink3);margin-bottom:6px;letter-spacing:.3px}
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font-size:12px;
+    cursor:pointer;color:var(--ink2);font-family:inherit}
+  .seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+  .counter{margin-top:14px;background:var(--gray-soft);border-radius:10px;padding:10px 12px;font-size:12px}
+  .counter b{font-size:17px;color:var(--red);font-variant-numeric:tabular-nums}
+  .legend{margin-top:12px;font-size:11.5px;color:var(--ink2);line-height:1.7}
+  .legend code{background:var(--gray-soft);padding:1px 5px;border-radius:4px;font-size:11px}
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);background:rgba(31,35,41,.92);color:#fff;
+    padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;bottom:46px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="topbar"><span id="clock">演示环境</span><span>麦麦套餐折扣榜 · v1.1 原型</span></div>
+    <div class="modeBanner" id="modeBanner"></div>
+    <div class="head" id="head"></div>
+    <div class="body" id="view"></div>
+    <nav class="tabbar" id="tabbar"></nav>
+  </div>
+
+  <aside class="review">
+    <h2>评审用状态切换</h2>
+    <div class="desc">仅原型使用；正式小程序无此面板。</div>
+
+    <div class="grp">
+      <label>渠道</label>
+      <div class="seg" id="segChannel"></div>
+    </div>
+    <div class="grp">
+      <label>展示状态</label>
+      <div class="seg" id="segScenario"></div>
+    </div>
+
+    <div class="counter">
+      本次会话 MCP 调用增量：<b id="calls">0</b> 次
+      <div class="tiny" style="margin-top:6px" id="callHint">打开页面、切渠道、下拉刷新、进详情都只读取本地已有结果。</div>
+    </div>
+
+    <div class="legend">
+      <b>两件事必须分清：</b><br>
+      · <code>页面刷新 / 切渠道 / 进详情</code> → 只读，调用增量为 0<br>
+      · <code>更新榜单</code> → 唯一核价入口，一次产生两个渠道批次<br>
+      · 演示状态下点击不会真的调用麦当劳接口，只演示状态流转。
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* 自动生成，请勿手改。来源：scripts/lib/demo-payload.js（数值由 src/core 统一规则计算） */
+window.PROTOTYPE_DATA = {
+  "mode": "demo",
+  "timezone": "Asia/Shanghai",
+  "generatedAt": "2026-10-16T04:12:00.000Z",
+  "generatedAtDisplay": "2026-10-16 12:12",
+  "observedAtDisplay": "2026-10-16 12:00",
+  "pricePolicyLabel": "普通可购价（含直接促销，不含个人券与付费会员）",
+  "banner": "演示数据：虚构门店、商品与地址，不代表任何真实麦当劳报价",
+  "contexts": [
+    {
+      "id": "ctx-pickup-demo",
+      "version": 1,
+      "contextVersion": "ctx-pickup-demo@v1",
+      "channel": "pickup",
+      "storeName": "演示店·到店自取",
+      "addressAlias": null,
+      "pricePolicy": "ordinary_direct_promo_no_personal_coupon_no_paid_membership",
+      "deliveryFeeCents": null,
+      "minOrderCents": null
+    },
+    {
+      "id": "ctx-delivery-demo",
+      "version": 1,
+      "contextVersion": "ctx-delivery-demo@v1",
+      "channel": "delivery",
+      "storeName": "演示店·麦乐送",
+      "addressAlias": "演示地址A",
+      "pricePolicy": "ordinary_direct_promo_no_personal_coupon_no_paid_membership",
+      "deliveryFeeCents": 600,
+      "minOrderCents": 2000
+    }
+  ],
+  "channels": {
+    "pickup": {
+      "contextVersion": "ctx-pickup-demo@v1",
+      "storeName": "演示店·到店自取",
+      "addressAlias": null,
+      "deliveryFeeCents": null,
+      "minOrderCents": null,
+      "scenarios": {
+        "normal": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "本次结果已发布",
+          "noteLevel": "info",
+          "activeStatus": null
+        },
+        "empty": {
+          "published": null,
+          "displayState": "empty",
+          "isStale": false,
+          "note": null,
+          "noteLevel": null,
+          "activeStatus": null
+        },
+        "updating": {
+          "published": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "previous_result",
+          "isStale": true,
+          "note": "更新进行中，以下仍为上次已发布结果",
+          "noteLevel": "info",
+          "activeStatus": "running"
+        },
+        "partial": {
+          "published": {
+            "batchId": "batch-partial-01",
+            "status": "partial",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": false,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": null,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "本次为局部结果，目录不完整",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "failed_keep_previous": {
+          "published": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "previous_result",
+          "isStale": false,
+          "note": "本次更新失败/未执行，以下为上次结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "failed_no_previous": {
+          "published": null,
+          "displayState": "empty",
+          "isStale": false,
+          "note": "本次更新失败/未执行，暂无历史结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "expired": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "expired"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "报价已过期，请手动更新榜单",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "validity_unknown": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "有效期未知，仅为报价时点结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "detailSources": {
+          "current": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "previous": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 1990,
+                "D": 3500,
+                "A": 1510,
+                "ratio": {
+                  "num": 1990,
+                  "den": 3500
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.1%",
+                  "savedAmountText": "少花¥15.10",
+                  "comparisonText": null,
+                  "ratioText": "1990/3500"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2760,
+                "D": 4600,
+                "A": 1840,
+                "ratio": {
+                  "num": 2760,
+                  "den": 4600
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40%",
+                  "savedAmountText": "少花¥18.40",
+                  "comparisonText": null,
+                  "ratioText": "2760/4600"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3600,
+                "D": 5400,
+                "A": 1800,
+                "ratio": {
+                  "num": 3600,
+                  "den": 5400
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省33.3%",
+                  "savedAmountText": "少花¥18.00",
+                  "comparisonText": null,
+                  "ratioText": "3600/5400"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1500,
+                "D": null,
+                "reasons": [
+                  "COMPONENT_PRICE_MISSING"
+                ],
+                "reasonText": "COMPONENT_PRICE_MISSING"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 2880,
+                "D": 3400,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 10,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 2,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 10 个，失败 0 个，缺价 2 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          }
+        }
+      }
+    },
+    "delivery": {
+      "contextVersion": "ctx-delivery-demo@v1",
+      "storeName": "演示店·麦乐送",
+      "addressAlias": "演示地址A",
+      "deliveryFeeCents": 600,
+      "minOrderCents": 2000,
+      "scenarios": {
+        "normal": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "本次结果已发布",
+          "noteLevel": "info",
+          "activeStatus": null
+        },
+        "empty": {
+          "published": null,
+          "displayState": "empty",
+          "isStale": false,
+          "note": null,
+          "noteLevel": null,
+          "activeStatus": null
+        },
+        "updating": {
+          "published": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "previous_result",
+          "isStale": true,
+          "note": "更新进行中，以下仍为上次已发布结果",
+          "noteLevel": "info",
+          "activeStatus": "running"
+        },
+        "partial": {
+          "published": {
+            "batchId": "batch-partial-01",
+            "status": "partial",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": false,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": null,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "本次为局部结果，目录不完整",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "failed_keep_previous": {
+          "published": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "previous_result",
+          "isStale": false,
+          "note": "本次更新失败/未执行，以下为上次结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "failed_no_previous": {
+          "published": null,
+          "displayState": "empty",
+          "isStale": false,
+          "note": "本次更新失败/未执行，暂无历史结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "expired": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "expired"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "报价已过期，请手动更新榜单",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "validity_unknown": {
+          "published": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "displayState": "current_snapshot",
+          "isStale": false,
+          "note": "有效期未知，仅为报价时点结果",
+          "noteLevel": "warn",
+          "activeStatus": null
+        },
+        "detailSources": {
+          "current": {
+            "batchId": "batch-current-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T04:00:00.000Z",
+              "end": "2026-10-16T04:00:00.000Z",
+              "display": "2026-10-16 12:00"
+            },
+            "validityState": "unknown"
+          },
+          "previous": {
+            "batchId": "batch-previous-01",
+            "status": "completed",
+            "ranking": [
+              {
+                "id": "demo-combo-nuggets",
+                "comboVariantId": "demo-combo-v3",
+                "name": "演示套餐·鸡块",
+                "configId": "demo-config-nuggets-v1",
+                "P": 2150,
+                "D": 3800,
+                "A": 1650,
+                "ratio": {
+                  "num": 2150,
+                  "den": 3800
+                },
+                "display": {
+                  "discountText": "5.7折",
+                  "savedPercentText": "节省43.4%",
+                  "savedAmountText": "少花¥16.50",
+                  "comparisonText": null,
+                  "ratioText": "2150/3800"
+                },
+                "compositionSummary": "演示鸡块(5块装)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 1
+              },
+              {
+                "id": "demo-combo-basic",
+                "comboVariantId": "demo-combo-v1",
+                "name": "演示套餐·基础",
+                "configId": "demo-config-basic-v1",
+                "P": 2990,
+                "D": 5000,
+                "A": 2010,
+                "ratio": {
+                  "num": 2990,
+                  "den": 5000
+                },
+                "display": {
+                  "discountText": "6.0折",
+                  "savedPercentText": "节省40.2%",
+                  "savedAmountText": "少花¥20.10",
+                  "comparisonText": null,
+                  "ratioText": "2990/5000"
+                },
+                "compositionSummary": "演示汉堡(中份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 2
+              },
+              {
+                "id": "demo-combo-large",
+                "comboVariantId": "demo-combo-v2",
+                "name": "演示套餐·大份",
+                "configId": "demo-config-large-v1",
+                "P": 3900,
+                "D": 5800,
+                "A": 1900,
+                "ratio": {
+                  "num": 3900,
+                  "den": 5800
+                },
+                "display": {
+                  "discountText": "6.7折",
+                  "savedPercentText": "节省32.8%",
+                  "savedAmountText": "少花¥19.00",
+                  "comparisonText": null,
+                  "ratioText": "3900/5800"
+                },
+                "compositionSummary": "演示汉堡(大份)×1 + 演示薯条(中份)×1 + 演示饮料(中杯)×1",
+                "rank": 3
+              }
+            ],
+            "notComparable": [
+              {
+                "id": "demo-combo-sweet",
+                "comboVariantId": "demo-combo-v4",
+                "name": "演示套餐·甜品",
+                "configId": "demo-config-sweet-v1",
+                "P": 1600,
+                "D": 2100,
+                "reasons": [
+                  "FEE_NOT_SEPARABLE"
+                ],
+                "reasonText": "FEE_NOT_SEPARABLE"
+              },
+              {
+                "id": "demo-combo-limited",
+                "comboVariantId": "demo-combo-v6",
+                "name": "演示套餐·限时",
+                "configId": "demo-config-limited-v1",
+                "P": 3080,
+                "D": 3700,
+                "reasons": [
+                  "SALE_NOT_AVAILABLE"
+                ],
+                "reasonText": "SALE_NOT_AVAILABLE"
+              },
+              {
+                "id": "demo-combo-holiday",
+                "comboVariantId": "demo-combo-v5",
+                "name": "演示套餐·节日限定",
+                "configId": null,
+                "P": null,
+                "D": 0,
+                "reasons": [
+                  "DEFAULT_CONFIG_UNKNOWN",
+                  "AMOUNT_MISSING",
+                  "DENOMINATOR_NOT_POSITIVE"
+                ],
+                "reasonText": "DEFAULT_CONFIG_UNKNOWN、AMOUNT_MISSING、DENOMINATOR_NOT_POSITIVE"
+              }
+            ],
+            "coverage": {
+              "catalogComplete": true,
+              "discoveredComboCount": 6,
+              "requiredSingleCount": 6,
+              "quoteSuccessCount": 11,
+              "eligibleComboCount": 3,
+              "quoteFailureCount": 0,
+              "missingPriceCount": 1,
+              "fullStoreCoverageRatio": 0.5,
+              "summaryText": "已发现 6 个套餐，其中 3 个可比；所需单品规格 6 个，成功报价 11 个，失败 0 个，缺价 1 个"
+            },
+            "observedRange": {
+              "start": "2026-10-16T01:30:00.000Z",
+              "end": "2026-10-16T01:30:00.000Z",
+              "display": "2026-10-16 09:30"
+            },
+            "validityState": "unknown"
+          }
+        }
+      }
+    }
+  },
+  "variants": [
+    {
+      "id": "demo-burger-mid",
+      "sourceProductRef": "SRC-BURGER-A",
+      "name": "演示汉堡",
+      "variantLabel": "中份",
+      "independentlySold": true,
+      "sourceKind": "single"
+    },
+    {
+      "id": "demo-burger-large",
+      "sourceProductRef": "SRC-BURGER-B",
+      "name": "演示汉堡",
+      "variantLabel": "大份",
+      "independentlySold": true,
+      "sourceKind": "single"
+    },
+    {
+      "id": "demo-fries-mid",
+      "sourceProductRef": "SRC-FRIES-A",
+      "name": "演示薯条",
+      "variantLabel": "中份",
+      "independentlySold": true,
+      "sourceKind": "single"
+    },
+    {
+      "id": "demo-drink-mid",
+      "sourceProductRef": "SRC-DRINK-A",
+      "name": "演示饮料",
+      "variantLabel": "中杯",
+      "independentlySold": true,
+      "sourceKind": "single"
+    },
+    {
+      "id": "demo-nuggets-5",
+      "sourceProductRef": "SRC-NUGGET-A",
+      "name": "演示鸡块",
+      "variantLabel": "5块装",
+      "independentlySold": true,
+      "sourceKind": "single"
+    },
+    {
+      "id": "demo-dessert-1",
+      "sourceProductRef": "SRC-DESSERT-A",
+      "name": "演示甜品",
+      "variantLabel": "1份",
+      "independentlySold": true,
+      "sourceKind": "single"
+    }
+  ],
+  "comboLookup": {
+    "pickup|demo-combo-basic": {
+      "name": "演示套餐·基础",
+      "configId": "demo-config-basic-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-mid",
+          "name": "演示汉堡",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 2400
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1200
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        }
+      ]
+    },
+    "pickup|demo-combo-large": {
+      "name": "演示套餐·大份",
+      "configId": "demo-config-large-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-large",
+          "name": "演示汉堡",
+          "variantLabel": "大份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 3200
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1200
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        }
+      ]
+    },
+    "pickup|demo-combo-nuggets": {
+      "name": "演示套餐·鸡块",
+      "configId": "demo-config-nuggets-v1",
+      "components": [
+        {
+          "variantId": "demo-nuggets-5",
+          "name": "演示鸡块",
+          "variantLabel": "5块装",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1300
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1200
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        }
+      ]
+    },
+    "pickup|demo-combo-sweet": {
+      "name": "演示套餐·甜品",
+      "configId": "demo-config-sweet-v1",
+      "components": [
+        {
+          "variantId": "demo-dessert-1",
+          "name": "演示甜品",
+          "variantLabel": "1份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": null
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        }
+      ]
+    },
+    "pickup|demo-combo-limited": {
+      "name": "演示套餐·限时",
+      "configId": "demo-config-limited-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-mid",
+          "name": "演示汉堡",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 2400
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        }
+      ]
+    },
+    "pickup|demo-combo-holiday": {
+      "name": "演示套餐·节日限定",
+      "configId": null,
+      "components": []
+    },
+    "delivery|demo-combo-basic": {
+      "name": "演示套餐·基础",
+      "configId": "demo-config-basic-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-mid",
+          "name": "演示汉堡",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 2600
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1300
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1100
+        }
+      ]
+    },
+    "delivery|demo-combo-large": {
+      "name": "演示套餐·大份",
+      "configId": "demo-config-large-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-large",
+          "name": "演示汉堡",
+          "variantLabel": "大份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 3400
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1300
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1100
+        }
+      ]
+    },
+    "delivery|demo-combo-nuggets": {
+      "name": "演示套餐·鸡块",
+      "configId": "demo-config-nuggets-v1",
+      "components": [
+        {
+          "variantId": "demo-nuggets-5",
+          "name": "演示鸡块",
+          "variantLabel": "5块装",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1400
+        },
+        {
+          "variantId": "demo-fries-mid",
+          "name": "演示薯条",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1300
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1100
+        }
+      ]
+    },
+    "delivery|demo-combo-sweet": {
+      "name": "演示套餐·甜品",
+      "configId": "demo-config-sweet-v1",
+      "components": [
+        {
+          "variantId": "demo-dessert-1",
+          "name": "演示甜品",
+          "variantLabel": "1份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1000
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1100
+        }
+      ]
+    },
+    "delivery|demo-combo-limited": {
+      "name": "演示套餐·限时",
+      "configId": "demo-config-limited-v1",
+      "components": [
+        {
+          "variantId": "demo-burger-mid",
+          "name": "演示汉堡",
+          "variantLabel": "中份",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 2600
+        },
+        {
+          "variantId": "demo-drink-mid",
+          "name": "演示饮料",
+          "variantLabel": "中杯",
+          "quantity": 1,
+          "isGift": false,
+          "unitPriceCents": 1100
+        }
+      ]
+    },
+    "delivery|demo-combo-holiday": {
+      "name": "演示套餐·节日限定",
+      "configId": null,
+      "components": []
+    }
+  }
+};
+
+</script>
+<script>
+(function () {
+  var D = window.PROTOTYPE_DATA;
+  var state = {
+    channel: 'pickup',
+    scenario: 'normal',
+    tab: 'ranking',
+    selected: null,
+    updating: false,
+    showDetails: false,
+    showDetailInfo: false,
+    mcpCalls: 0
+  };
+
+  var SCENARIOS = [
+    ['normal', '演示（正常）'],
+    ['empty', '空态'],
+    ['updating', '更新中'],
+    ['partial', '部分成功'],
+    ['failed_keep_previous', '更新失败·保留旧结果'],
+    ['failed_no_previous', '更新失败·无旧结果'],
+    ['expired', '已过期'],
+    ['validity_unknown', '有效期未知']
+  ];
+
+  var CHANNEL_LABEL = { pickup: '到店自取', delivery: '官方麦乐送' };
+
+  function ch() { return D.channels[state.channel]; }
+  function sc() { return ch().scenarios[state.scenario]; }
+  function published() { return sc().published; }
+
+  function yuan(cents) { return (cents / 100).toFixed(2); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1900);
+  }
+
+  /* ---------------- 头部 ---------------- */
+  function renderHead() {
+    var c = ch();
+    var banner = document.getElementById('modeBanner');
+    banner.innerHTML = '<b>演示数据</b><span>' + esc(D.banner) + '</span>';
+
+    var lines = [
+      '<h1>麦麦套餐折扣榜</h1>',
+      '<div class="sub">' + CHANNEL_LABEL[state.channel] + ' · ' + esc(c.storeName) +
+        (state.channel === 'delivery' ? ' · 地址别名 ' + esc(c.addressAlias) : '') + '</div>',
+      '<div class="sub">' + esc(D.pricePolicyLabel) + '</div>'
+    ];
+    var chips = Object.keys(D.channels).map(function (key) {
+      return '<button class="chip" data-channel="' + key + '" aria-selected="' + (key === state.channel) + '">' +
+        CHANNEL_LABEL[key] + '</button>';
+    }).join('');
+    document.getElementById('head').innerHTML = lines.join('') + '<div class="chips">' + chips + '</div>';
+  }
+
+  /* ---------------- P01 套餐榜 ---------------- */
+  function renderRanking() {
+    var c = ch(), s = sc(), pub = published();
+    var out = [];
+
+    // 更新操作区：只留按钮 + 一行短注，长声明收进「数据详情」
+    var updating = s.activeStatus === 'running' || state.updating;
+    out.push('<div class="updatebar">');
+    out.push('<button class="btn" id="btnUpdate"' + (updating ? ' disabled' : '') + '>' +
+      (updating ? '正在更新…' : '更新榜单') + '</button>');
+    out.push('<div class="btnHint" style="text-align:center">一次更新自取和外送，分别出结果</div>');
+    out.push('</div>');
+
+    // 需要用户注意/行动的警示（warn 级）：单行横幅。info 级（如「本次结果已发布」）已并入下方折叠头标签，不再单独铺横幅
+    if (pub && s.note && s.noteLevel === 'warn') {
+      out.push('<div class="warnline">' + esc(s.note) + '</div>');
+    }
+
+    // 数据详情：报价时间 / 批次 / 更新状态 / 覆盖 / 只读声明 —— 默认完全折叠
+    if (pub) {
+      var cov = pub.coverage;
+      var tagCls = s.displayState === 'previous_result' ? 'yellow' : 'green';
+      var tagTxt = s.displayState === 'previous_result' ? '上次结果' : '本次结果';
+      out.push('<div class="card dt">');
+      out.push('<div class="dt-head" data-dt="1"><span class="dt-title">' +
+        '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
+        '<span class="muted">报价 ' + esc(pub.observedRange.display || '时间未知') + '</span></span>' +
+        '<span class="dt-chev' + (state.showDetails ? ' open' : '') + '">›</span></div>');
+      if (state.showDetails) {
+        out.push('<div class="dt-body">');
+        out.push('<div class="kv"><span>真实报价时间</span><span>' + esc(pub.observedRange.display || '报价时间未知') + '</span></div>');
+        out.push('<div class="kv"><span>批次</span><span>' + esc(pub.batchId) + '</span></div>');
+        out.push('<div class="kv"><span>本次更新状态</span><span>' + statusPill(pub.status) + '</span></div>');
+        out.push('<div class="kv"><span>覆盖</span><span>' + esc(cov.summaryText) + '</span></div>');
+        out.push('<div class="kv"><span>目录完整性</span><span>' + esc(catalogText(cov.catalogComplete)) +
+          (cov.catalogComplete === true ? '' : '，不称全店最优') + '</span></div>');
+        out.push('<div class="tiny" style="margin-top:8px">打开页面、返回前台、切换渠道、下拉刷新、打开详情都只读取已有结果，不会调用麦当劳接口；首次打开不会自动查询。</div>');
+        out.push('</div>');
+      }
+      out.push('</div>');
+    }
+
+    if (!pub) {
+      if (updating) {
+        // 更新中且无旧快照：骨架屏，不转菊花
+        out.push('<div class="card"><div class="sk" style="height:16px;width:42%"></div>' +
+          '<div class="sk" style="height:12px;width:72%;margin-top:10px"></div></div>');
+        for (var i = 0; i < 3; i++) {
+          out.push('<div class="combo" style="cursor:default">' +
+            '<div class="sk" style="width:28px;height:28px;flex:0 0 28px;border-radius:10px"></div>' +
+            '<div class="mid"><div class="sk" style="height:14px;width:55%"></div>' +
+            '<div class="sk" style="height:11px;width:82%;margin-top:8px"></div></div>' +
+            '<div class="price"><div class="sk" style="height:18px;width:64px"></div>' +
+            '<div class="sk" style="height:11px;width:46px;margin-top:7px"></div></div></div>');
+        }
+        return out.join('');
+      }
+      out.push('<div class="empty">' +
+        '<svg class="empty-art" viewBox="0 0 96 96" fill="none">' +
+        '<path d="M20 40c0-12 12-20 28-20s28 8 28 20H20z" fill="#ffe3a3" stroke="#e8b23a" stroke-width="2.5"/>' +
+        '<circle cx="38" cy="30" r="1.6" fill="#b97f1f"/><circle cx="50" cy="27" r="1.6" fill="#b97f1f"/><circle cx="60" cy="31" r="1.6" fill="#b97f1f"/>' +
+        '<rect x="18" y="46" width="60" height="8" rx="4" fill="#f6c453" stroke="#e8b23a" stroke-width="2.5"/>' +
+        '<path d="M22 60h52c0 3-2 5-5 5H27c-3 0-5-2-5-5z" fill="#ef8a3c" stroke="#e07840" stroke-width="2.5"/>' +
+        '<path d="M20 72c0 6 5 10 12 10h32c7 0 12-4 12-10H20z" fill="#ffe3a3" stroke="#e8b23a" stroke-width="2.5"/>' +
+        '</svg>' +
+        '<div class="big">暂无报价</div>' +
+        (s.note ? '<div>' + esc(s.note) + '</div>' : '<div>点击上方「更新榜单」发起一次更新</div>') +
+        '<div class="tiny" style="margin-top:10px">首次打开页面不会自动查询麦当劳接口。</div></div>');
+      return out.join('');
+    }
+
+    // 主榜
+    if (pub.ranking.length === 0) {
+      out.push('<div class="card"><h3>完整可比套餐</h3><div class="muted">本次 0 个可比套餐。空榜与原因照实发布，不用上次套餐补榜。</div></div>');
+    } else {
+      out.push('<div class="tiny" style="margin:2px 2px 6px">完整可比的默认套餐 · 按折扣比升序</div>');
+      pub.ranking.forEach(function (item) {
+        out.push(renderComboRow(item));
+      });
+    }
+
+    // 暂不可比较
+    if (pub.notComparable.length) {
+      out.push('<div class="nc" style="margin-top:4px">' +
+        '<div class="nchead"><span>暂不可比较 · ' + pub.notComparable.length + ' 个</span><span class="tiny">查看原因 ›</span></div>');
+      pub.notComparable.forEach(function (item) {
+        out.push('<div class="item" data-nc="' + esc(item.id) + '"><div style="min-width:0">' +
+          '<div style="font-weight:600">' + esc(item.name) + '</div>' +
+          '<div class="why">' + esc(item.reasons.map(reasonCn).join('、')) + '</div>' +
+          '</div><div class="tiny">详情 ›</div></div>');
+      });
+      out.push('</div>');
+    }
+    return out.join('');
+  }
+
+  function renderComboRow(item) {
+    var d = item.display;
+    var cls = d.discountText ? '' : ' expensive';
+    var dealText = d.discountText || d.savedPercentText;
+    var same = d.savedPercentText === '与单买同价';
+    if (item.rank === 1) {
+      var dim = d.discountText ? '' : ' dim';
+      return '<div class="combo hero' + dim + '" data-combo="' + esc(item.id) + '">' +
+        '<div class="hero-top"><span class="hero-badge">TOP 1 · 本店最划算</span>' +
+        '<span class="hero-deal">' + esc(dealText) + '</span></div>' +
+        '<div class="hero-name">' + esc(item.name) + '</div>' +
+        '<div class="hero-comp">' + esc(item.compositionSummary) + '</div>' +
+        '<div class="hero-price"><span class="hp">¥' + yuan(item.P) + '</span>' +
+        '<span class="hd">单买 ¥' + yuan(item.D) + '</span>' +
+        '<span class="hs">' + esc(d.savedAmountText || dealText) + '</span></div></div>';
+    }
+    return '<div class="combo" data-combo="' + esc(item.id) + '">' +
+      '<div class="rank top' + item.rank + '">' + item.rank + '</div>' +
+      '<div class="mid">' +
+        '<div class="nm">' + esc(item.name) + '</div>' +
+        '<div class="comp">' + esc(item.compositionSummary) + '</div>' +
+        '<div class="deal' + (same ? ' same' : cls) + '">' + esc(dealText) + '</div>' +
+      '</div>' +
+      '<div class="price">' +
+        '<div class="p1">¥' + yuan(item.P) + '</div>' +
+        '<div class="p2">单买 ¥' + yuan(item.D) + '</div>' +
+        '<div class="tiny">' + esc(d.savedAmountText) + '</div>' +
+      '</div></div>';
+  }
+
+  /* ---------------- P02 套餐详情 ---------------- */
+  function renderDetail() {
+    var pub = published();
+    var id = state.selected;
+    var item = pub && pub.ranking.concat(pub.notComparable).filter(function (x) { return x.id === id; })[0];
+    if (!item) {
+      var first = pub && (pub.ranking[0] || pub.notComparable[0]);
+      if (first) { item = first; state.selected = first.id; }
+    }
+    if (!item) {
+      return '<div class="empty"><div class="big">暂无报价详情</div><div>请先更新榜单。</div></div>';
+    }
+    var isComparable = item.rank != null;
+    var out = [];
+    out.push('<button class="back" data-back="1">‹ 返回榜单</button>');
+    out.push('<div class="card">');
+    out.push('<div class="row"><h3 style="margin:0">' + esc(item.name) + '</h3>' +
+      '<span class="tag ' + (isComparable ? 'green' : 'gray') + '">' + (isComparable ? '可比' : '不可比') + '</span></div>');
+    out.push('<div class="muted" style="margin-top:4px">' + CHANNEL_LABEL[state.channel] + ' · ' + esc(ch().storeName) + '</div>');
+    out.push('</div>');
+
+    // 公式（核心信息，平铺）
+    out.push('<div class="card"><h3>折扣计算</h3>');
+    if (isComparable) {
+      out.push('<div class="formula">¥' + yuan(item.P) + ' ÷ ¥' + yuan(item.D) +
+        ' = 折扣比 ' + item.ratio.num + '/' + item.ratio.den +
+        ' = <b>' + esc(item.display.discountText || '—') + '</b></div>');
+      out.push('<div class="kv"><span>折数</span><span>' + esc(item.display.discountText || '—') + '</span></div>');
+      out.push('<div class="kv"><span>节省比例</span><span>' + esc(item.display.savedPercentText) + '</span></div>');
+      out.push('<div class="kv"><span>节省金额</span><span>' + esc(item.display.savedAmountText) + '</span></div>');
+      if (state.channel === 'delivery') {
+        out.push('<div class="tiny" style="margin-top:7px">金额为餐品口径；配送/包装/服务费另列，不计入折扣。</div>');
+      }
+    } else {
+      out.push('<div class="muted">该项暂不可比，不生成折扣与名次。</div>');
+      out.push('<div class="note">不可比原因：' + esc(item.reasons.map(reasonCn).join('、')) + '</div>');
+      if (item.P != null) out.push('<div class="kv"><span>已取得的套餐金额</span><span>¥' + yuan(item.P) + '</span></div>');
+      if (item.D != null) out.push('<div class="kv"><span>已取得的单买合计</span><span>¥' + yuan(item.D) + '</span></div>');
+    }
+    out.push('</div>');
+
+    // 组成（核心信息，平铺；版本号折进数据详情）
+    var combo = (D.comboLookup || {})[state.channel + '|' + item.id];
+    out.push('<div class="card"><h3>默认组成</h3>');
+    if (!combo || !combo.components.length) {
+      out.push('<div class="muted">默认组成未取到，该套餐不进入排名。</div>');
+    } else {
+      out.push('<div class="tiny" style="margin-bottom:6px">共 ' + combo.components.length + ' 项</div>');
+      combo.components.forEach(function (c) {
+        var sub = c.unitPriceCents == null ? '未核验' : '¥' + yuan(c.unitPriceCents);
+        var line = c.unitPriceCents == null ? '未核验' : '¥' + yuan(c.unitPriceCents * c.quantity);
+        out.push('<div class="comp-row"><div class="l">' + esc(c.name) +
+          (c.variantLabel ? ' <span class="tiny">' + esc(c.variantLabel) + '</span>' : '') +
+          ' <span class="tiny">×' + c.quantity + '</span>' + (c.isGift ? ' <span class="tag gray">赠品</span>' : '') +
+          '</div><div class="r">' + sub + ' <span class="tiny">→ ' + line + '</span></div></div>');
+      });
+      out.push('<div class="kv" style="margin-top:8px"><span>单买合计 D</span><span>¥' +
+        (item.D == null ? '未核验' : yuan(item.D)) + '</span></div>');
+    }
+    out.push('</div>');
+
+    // 数据详情（默认完全折叠）：报价时间 / 有效期 / 批次 / 组成版本 / 购买条件 / 配送费
+    out.push('<div class="card dt">');
+    out.push('<div class="dt-head" data-dt2="1"><span class="dt-title">' +
+      '<span class="muted">报价 ' + esc(pub.observedRange.display || '时间未知') + '</span></span>' +
+      '<span class="dt-chev' + (state.showDetailInfo ? ' open' : '') + '">›</span></div>');
+    if (state.showDetailInfo) {
+      out.push('<div class="dt-body">');
+      out.push('<div class="kv"><span>真实报价时间</span><span>' + esc(pub.observedRange.display || '报价时间未知') + '</span></div>');
+      out.push('<div class="kv"><span>有效期</span><span>' + esc(validityText(pub.validityState)) + '</span></div>');
+      out.push('<div class="kv"><span>批次</span><span>' + esc(pub.batchId) + '</span></div>');
+      out.push('<div class="kv"><span>组成版本</span><span>' + esc((combo && combo.configId) || '未核实') + '</span></div>');
+      if (state.channel === 'delivery') {
+        out.push('<div class="kv"><span>购买条件</span><span>' + esc(purchaseText(ch())) + '</span></div>');
+        out.push('<div class="kv"><span>配送/包装/服务费</span><span>' +
+          (ch().deliveryFeeCents == null ? '未知' : '另列 ¥' + yuan(ch().deliveryFeeCents)) + '</span></div>');
+      } else {
+        out.push('<div class="kv"><span>购买条件</span><span>可单独购买</span></div>');
+      }
+      out.push('</div>');
+    }
+    out.push('</div>');
+    return out.join('');
+  }
+
+  function purchaseText(c) {
+    if (!c.minOrderCents) return '条件未知';
+    return '需凑单（起送 ¥' + yuan(c.minOrderCents) + '）';
+  }
+
+  /* ---------------- P03 更新状态 ---------------- */
+  function renderStatus() {
+    var pub = published();
+    var out = [];
+    out.push('<div class="card"><h3>运行模式与固定条件</h3>');
+    out.push('<div class="kv"><span>模式</span><span><span class="tag yellow">demo 演示</span></span></div>');
+    Object.keys(D.channels).forEach(function (k) {
+      var c = D.channels[k];
+      out.push('<div class="kv"><span>' + CHANNEL_LABEL[k] + '门店</span><span>' + esc(c.storeName) +
+        (c.addressAlias ? ' · 别名 ' + esc(c.addressAlias) : '') + '</span></div>');
+    });
+    out.push('</div>');
+
+    out.push('<div class="card"><h3>最近一次用户更新请求</h3>');
+    out.push('<div class="kv"><span>请求标识</span><span>' + (state.scenario === 'empty' ? '—' : 'req-20261016-0001') + '</span></div>');
+    out.push('<div class="kv"><span>发起时间</span><span>' + (state.scenario === 'empty' ? '—' : '2026-10-16 12:00') + '</span></div>');
+    out.push('<div class="kv"><span>幂等键</span><span>' + (state.scenario === 'empty' ? '—' : 'idem-20261016-0001') + '</span></div>');
+    out.push('<div class="kv"><span>自取批次</span><span>' + channelStatus('pickup') + '</span></div>');
+    out.push('<div class="kv"><span>外送批次</span><span>' + channelStatus('delivery') + '</span></div>');
+    out.push('</div>');
+
+    out.push('<div class="card"><h3>本渠道最近发布结果</h3>');
+    if (pub) {
+      var cov = pub.coverage;
+      out.push('<div class="st-row"><span>批次 / 状态</span><span>' + esc(pub.batchId) + ' ' + statusPill(pub.status) + '</span></div>');
+      out.push('<div class="st-row"><span>发现套餐数</span><span>' + cov.discoveredComboCount + '</span></div>');
+      out.push('<div class="st-row"><span>必要单品规格数</span><span>' + cov.requiredSingleCount + '</span></div>');
+      out.push('<div class="st-row"><span>成功报价数</span><span>' + cov.quoteSuccessCount + '</span></div>');
+      out.push('<div class="st-row"><span>可比套餐数</span><span>' + cov.eligibleComboCount + '</span></div>');
+      out.push('<div class="st-row"><span>失败 / 缺价</span><span>' + cov.quoteFailureCount + ' / ' + cov.missingPriceCount +
+        ' <span class="tiny">（可能重叠，不相加）</span></span></div>');
+      out.push('<div class="st-row"><span>目录完整性</span><span>' + esc(catalogText(cov.catalogComplete)) + '</span></div>');
+      out.push('<div class="st-row"><span>报价时间</span><span>' + esc(pub.observedRange.display || '未知') + '</span></div>');
+    } else {
+      out.push('<div class="muted">本渠道暂无已发布结果。</div>');
+    }
+    out.push('</div>');
+
+    if (sc().note && sc().noteLevel === 'warn' && pub) {
+      out.push('<div class="warnline">' + esc(sc().note) + '</div>');
+    }
+    if (state.scenario.indexOf('failed') === 0) {
+      out.push('<div class="card"><h3>错误信息</h3><div class="muted">本次未执行：认证失效（AUTH_EXPIRED）。</div></div>');
+    }
+    return out.join('');
+  }
+
+  function channelStatus(key) {
+    if (state.scenario === 'empty') return '<span class="tiny">未发起</span>';
+    if (state.scenario === 'updating') {
+      return key === 'pickup' ? statusPill('running') : '<span class="tiny">等待</span>';
+    }
+    if (state.scenario.indexOf('failed') === 0) {
+      return key === 'pickup' ? statusPill('completed') + ' <span class="tiny">独立完成</span>'
+        : statusPill('failed') + ' <span class="tiny">不影响另一方</span>';
+    }
+    return statusPill('completed');
+  }
+
+  function statusPill(status) {
+    var label = { completed: '已完成', partial: '局部完成', failed: '失败', blocked: '未执行', running: '更新中' }[status] || status;
+    return '<span class="pill ' + status + '">' + label + '</span>';
+  }
+
+  function catalogText(v) {
+    if (v === true) return '目录已完整取得';
+    if (v === 'unknown') return '目录完整性未知';
+    return '目录不完整，仅已发现的套餐';
+  }
+
+  function validityText(v) {
+    if (v === 'within_known_window') return '在已核实的有效区间内';
+    if (v === 'expired') return '报价已过期，请手动更新榜单';
+    return '有效期未知，仅为报价时点结果';
+  }
+
+  var REASON_CN = {
+    COMPONENT_PRICE_MISSING: '组成单品缺价', FEE_NOT_SEPARABLE: '费用无法拆分为纯餐品金额',
+    SALE_NOT_AVAILABLE: '来源确认售罄，退出本次可购主榜', DEFAULT_CONFIG_UNKNOWN: '默认组成未知',
+    ENTITLEMENT_UNKNOWN: '价格口径待核实（无法排除个人券或会员权益）',
+    CONDITION_UNKNOWN: '供餐/促销条件未知', CONDITION_MISMATCH: '供餐/促销条件不一致',
+    QUOTE_NOT_SINGLE_UNIT: '报价不是单份独立购买价', AMOUNT_MISSING: '未取到有效金额',
+    UNIT_UNKNOWN: '金额口径无法确认', PRICE_POLICY_UNVERIFIED: '仅展示价、未核价',
+    DENOMINATOR_NOT_POSITIVE: '单买合计不为正，无法计算折扣'
+  };
+  function reasonCn(code) { return REASON_CN[code] || code; }
+
+  /* ---------------- 渲染调度 ---------------- */
+  function renderTabbar() {
+    var tabs = [['ranking', '套餐榜'], ['detail', '套餐详情'], ['status', '更新状态']];
+    document.getElementById('tabbar').innerHTML = tabs.map(function (t) {
+      return '<button data-tab="' + t[0] + '" aria-selected="' + (state.tab === t[0]) + '">' +
+        '<span class="dot"></span>' + t[1] + '</button>';
+    }).join('');
+  }
+
+  function render() {
+    renderHead();
+    renderTabbar();
+    var html = state.tab === 'ranking' ? renderRanking() : state.tab === 'detail' ? renderDetail() : renderStatus();
+    document.getElementById('view').innerHTML = html;
+    document.getElementById('calls').textContent = String(state.mcpCalls);
+    bind();
+  }
+
+  /* ---------------- 评审面板 ---------------- */
+  function renderReview() {
+    document.getElementById('segChannel').innerHTML = Object.keys(D.channels).map(function (k) {
+      return '<button data-rc="' + k + '" aria-pressed="' + (state.channel === k) + '">' + CHANNEL_LABEL[k] + '</button>';
+    }).join('');
+    document.getElementById('segScenario').innerHTML = SCENARIOS.map(function (s) {
+      return '<button data-rs="' + s[0] + '" aria-pressed="' + (state.scenario === s[0]) + '">' + s[1] + '</button>';
+    }).join('');
+  }
+
+  /* ---------------- 事件 ---------------- */
+  function bind() {
+    document.querySelectorAll('[data-channel]').forEach(function (el) {
+      el.onclick = function () {
+        if (el.dataset.channel === state.channel) return;
+        state.channel = el.dataset.channel;
+        state.selected = null;
+        render(); // 切渠道只读，不触发核价
+        toast('切换渠道：只读取本服务已有结果，MCP 调用增量 0');
+      };
+    });
+    document.querySelectorAll('[data-tab]').forEach(function (el) {
+      el.onclick = function () { state.tab = el.dataset.tab; render(); };
+    });
+    document.querySelectorAll('[data-combo]').forEach(function (el) {
+      el.onclick = function () { state.selected = el.dataset.combo; state.tab = 'detail'; render(); };
+    });
+    document.querySelectorAll('[data-nc]').forEach(function (el) {
+      el.onclick = function () { state.selected = el.dataset.nc; state.tab = 'detail'; render(); };
+    });
+    var back = document.querySelector('[data-back]');
+    if (back) back.onclick = function () { state.tab = 'ranking'; render(); };
+
+    var dt = document.querySelector('[data-dt]');
+    if (dt) dt.onclick = function () { state.showDetails = !state.showDetails; render(); };
+
+    var dt2 = document.querySelector('[data-dt2]');
+    if (dt2) dt2.onclick = function () { state.showDetailInfo = !state.showDetailInfo; render(); };
+
+    var btn = document.getElementById('btnUpdate');
+    if (btn) btn.onclick = onUpdate;
+  }
+
+  function onUpdate() {
+    if (state.updating) return;                    // 客户端防连点
+    if (sc().activeStatus === 'running') return;   // 服务端也去重
+    state.updating = true;
+    state.mcpCalls += 2;                           // 一次更新 = 两个渠道批次
+    state.scenario = 'updating';
+    render();
+    toast('已发起一次更新：自取、外送各一个批次（共 2 个核价批次）');
+    setTimeout(function () {
+      state.updating = false;
+      state.scenario = 'normal';
+      render();
+      toast('更新完成：自取、外送分别发布结果');
+    }, 1800);
+  }
+
+  document.getElementById('segChannel').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rc]'); if (!b) return;
+    state.channel = b.dataset.rc; state.selected = null; renderReview(); render();
+  });
+  document.getElementById('segScenario').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rs]'); if (!b) return;
+    state.scenario = b.dataset.rs; state.selected = null; renderReview(); render();
+  });
+
+  renderReview();
+  render();
+})();
+</script>
+</body>
+</html>

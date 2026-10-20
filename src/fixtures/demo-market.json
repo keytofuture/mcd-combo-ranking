@@ -1,0 +1,159 @@
+{
+  "mode": "demo",
+  "currency": "CNY",
+  "note": "虚构渠道、门店、商品与地址，仅用于本地开发与原型验收。不代表任何真实麦当劳报价。所有 evidenceRef 以 fixture: 前缀标识。v1.1 已移除 monitoringEnabledAt 等历史/定时字段。",
+  "contexts": [
+    {
+      "id": "ctx-pickup-demo",
+      "version": 1,
+      "channel": "pickup",
+      "storeRef": "demo-store-001",
+      "storeName": "演示店·到店自取",
+      "addressRef": null,
+      "addressAlias": null,
+      "pricePolicy": "ordinary_direct_promo_no_personal_coupon_no_paid_membership",
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "id": "ctx-delivery-demo",
+      "version": 1,
+      "channel": "delivery",
+      "storeRef": "demo-store-001",
+      "storeName": "演示店·麦乐送",
+      "addressRef": "demo-addr-ref-01",
+      "addressAlias": "演示地址A",
+      "pricePolicy": "ordinary_direct_promo_no_personal_coupon_no_paid_membership",
+      "timezone": "Asia/Shanghai"
+    }
+  ],
+  "variants": [
+    { "id": "demo-burger-mid", "sourceProductRef": "SRC-BURGER-A", "name": "演示汉堡", "variantLabel": "中份", "independentlySold": true, "sourceKind": "single" },
+    { "id": "demo-burger-large", "sourceProductRef": "SRC-BURGER-B", "name": "演示汉堡", "variantLabel": "大份", "independentlySold": true, "sourceKind": "single" },
+    { "id": "demo-fries-mid", "sourceProductRef": "SRC-FRIES-A", "name": "演示薯条", "variantLabel": "中份", "independentlySold": true, "sourceKind": "single" },
+    { "id": "demo-drink-mid", "sourceProductRef": "SRC-DRINK-A", "name": "演示饮料", "variantLabel": "中杯", "independentlySold": true, "sourceKind": "single" },
+    { "id": "demo-nuggets-5", "sourceProductRef": "SRC-NUGGET-A", "name": "演示鸡块", "variantLabel": "5块装", "independentlySold": true, "sourceKind": "single" },
+    { "id": "demo-dessert-1", "sourceProductRef": "SRC-DESSERT-A", "name": "演示甜品", "variantLabel": "1份", "independentlySold": true, "sourceKind": "single" }
+  ],
+  "combos": [
+    {
+      "id": "demo-combo-basic",
+      "comboVariantId": "demo-combo-v1",
+      "name": "演示套餐·基础",
+      "configId": "demo-config-basic-v1",
+      "isVerifiedDefault": true,
+      "components": [
+        { "variantId": "demo-burger-mid", "quantity": 1, "isGift": false },
+        { "variantId": "demo-fries-mid", "quantity": 1, "isGift": false },
+        { "variantId": "demo-drink-mid", "quantity": 1, "isGift": false }
+      ]
+    },
+    {
+      "id": "demo-combo-large",
+      "comboVariantId": "demo-combo-v2",
+      "name": "演示套餐·大份",
+      "configId": "demo-config-large-v1",
+      "isVerifiedDefault": true,
+      "components": [
+        { "variantId": "demo-burger-large", "quantity": 1, "isGift": false },
+        { "variantId": "demo-fries-mid", "quantity": 1, "isGift": false },
+        { "variantId": "demo-drink-mid", "quantity": 1, "isGift": false }
+      ]
+    },
+    {
+      "id": "demo-combo-nuggets",
+      "comboVariantId": "demo-combo-v3",
+      "name": "演示套餐·鸡块",
+      "configId": "demo-config-nuggets-v1",
+      "isVerifiedDefault": true,
+      "components": [
+        { "variantId": "demo-nuggets-5", "quantity": 1, "isGift": false },
+        { "variantId": "demo-fries-mid", "quantity": 1, "isGift": false },
+        { "variantId": "demo-drink-mid", "quantity": 1, "isGift": false }
+      ]
+    },
+    {
+      "id": "demo-combo-sweet",
+      "comboVariantId": "demo-combo-v4",
+      "name": "演示套餐·甜品",
+      "configId": "demo-config-sweet-v1",
+      "isVerifiedDefault": true,
+      "components": [
+        { "variantId": "demo-dessert-1", "quantity": 1, "isGift": false },
+        { "variantId": "demo-drink-mid", "quantity": 1, "isGift": false }
+      ]
+    },
+    {
+      "id": "demo-combo-limited",
+      "comboVariantId": "demo-combo-v6",
+      "name": "演示套餐·限时",
+      "configId": "demo-config-limited-v1",
+      "isVerifiedDefault": true,
+      "components": [
+        { "variantId": "demo-burger-mid", "quantity": 1, "isGift": false },
+        { "variantId": "demo-drink-mid", "quantity": 1, "isGift": false }
+      ]
+    },
+    {
+      "id": "demo-combo-holiday",
+      "comboVariantId": "demo-combo-v5",
+      "name": "演示套餐·节日限定",
+      "configId": null,
+      "isVerifiedDefault": false,
+      "components": []
+    }
+  ],
+  "priceTables": {
+    "ctx-pickup-demo@v1": {
+      "currency": "CNY",
+      "food": {
+        "demo-burger-mid": 2400,
+        "demo-burger-large": 3200,
+        "demo-fries-mid": 1200,
+        "demo-drink-mid": 1000,
+        "demo-nuggets-5": 1300,
+        "demo-dessert-1": 900
+      },
+      "combo": {
+        "demo-combo-v1": 2760,
+        "demo-combo-v2": 3600,
+        "demo-combo-v3": 1990,
+        "demo-combo-v4": 1500,
+        "demo-combo-v5": null,
+        "demo-combo-v6": 2880
+      },
+      "deliveryFeeCents": null,
+      "minOrderCents": null
+    },
+    "ctx-delivery-demo@v1": {
+      "currency": "CNY",
+      "food": {
+        "demo-burger-mid": 2600,
+        "demo-burger-large": 3400,
+        "demo-fries-mid": 1300,
+        "demo-drink-mid": 1100,
+        "demo-nuggets-5": 1400,
+        "demo-dessert-1": 1000
+      },
+      "combo": {
+        "demo-combo-v1": 2990,
+        "demo-combo-v2": 3900,
+        "demo-combo-v3": 2150,
+        "demo-combo-v4": 1600,
+        "demo-combo-v5": null,
+        "demo-combo-v6": 3080
+      },
+      "deliveryFeeCents": 600,
+      "minOrderCents": 2000
+    }
+  },
+  "defects": {
+    "ctx-pickup-demo@v1": {
+      "demo-combo-sweet": { "kind": "missingComponent", "variantId": "demo-dessert-1", "reasonCode": "COMPONENT_PRICE_MISSING" },
+      "demo-combo-limited": { "kind": "soldOut", "reasonCode": "SALE_NOT_AVAILABLE" }
+    },
+    "ctx-delivery-demo@v1": {
+      "demo-combo-sweet": { "kind": "feeNotSeparable", "reasonCode": "FEE_NOT_SEPARABLE" },
+      "demo-combo-limited": { "kind": "soldOut", "reasonCode": "SALE_NOT_AVAILABLE" }
+    }
+  }
+}

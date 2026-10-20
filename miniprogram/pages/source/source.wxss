@@ -1,0 +1,8 @@
+/* pages/source/source.wxss — 共享样式见 app.wxss */
+page {
+  padding-bottom: calc(130rpx + env(safe-area-inset-bottom));
+}
+
+.src-hero {
+  margin-top: 20rpx;
+}

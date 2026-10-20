@@ -1,0 +1,71 @@
+{
+  "mode": "demo",
+  "note": "覆盖统计场景（v1.1 PRD 7.2、T22）。失败数与缺价数可能重叠，不得相加当总商品数。",
+  "cases": [
+    {
+      "id": "T22",
+      "title": "菜单第二页失败，但第一页一套完整报价 -> partial 局部榜，不算全店覆盖率",
+      "catalogComplete": false,
+      "combos": [
+        {
+          "comboVariantId": "c1",
+          "eligible": true,
+          "observation": { "amountCents": 2760, "pricePolicyState": "verified_ordinary", "reasonCode": null },
+          "components": [
+            { "variantId": "s1", "quote": { "amountCents": 2400, "pricePolicyState": "verified_ordinary", "reasonCode": null } },
+            { "variantId": "s2", "quote": { "amountCents": 1200, "pricePolicyState": "verified_ordinary", "reasonCode": null } }
+          ]
+        },
+        {
+          "comboVariantId": "c2",
+          "eligible": false,
+          "observation": { "amountCents": null, "pricePolicyState": "verified_ordinary", "reasonCode": "REQUEST_FAILED" },
+          "components": [
+            { "variantId": "s1", "quote": { "amountCents": 2400, "pricePolicyState": "verified_ordinary", "reasonCode": null } },
+            { "variantId": "s3", "quote": { "amountCents": null, "pricePolicyState": "unknown", "reasonCode": "REQUEST_FAILED" } }
+          ]
+        }
+      ],
+      "expected": {
+        "catalogComplete": false,
+        "discoveredComboCount": 2,
+        "eligibleComboCount": 1,
+        "requiredSingleCount": 3,
+        "quoteSuccessCount": 3,
+        "quoteFailureCount": 2,
+        "missingPriceCount": 2,
+        "fullStoreCoverageRatio": null
+      }
+    },
+    {
+      "id": "T22b",
+      "title": "目录完整时计算全店覆盖率；售罄导致空榜仍为 completed",
+      "catalogComplete": true,
+      "combos": [
+        {
+          "comboVariantId": "c1",
+          "eligible": true,
+          "observation": { "amountCents": 2760, "pricePolicyState": "verified_ordinary", "reasonCode": null },
+          "components": [
+            { "variantId": "s1", "quote": { "amountCents": 2400, "pricePolicyState": "verified_ordinary", "reasonCode": null } }
+          ]
+        },
+        {
+          "comboVariantId": "c2",
+          "eligible": false,
+          "observation": { "amountCents": 3000, "pricePolicyState": "verified_ordinary", "reasonCode": null },
+          "components": [
+            { "variantId": "s1", "quote": { "amountCents": 2400, "pricePolicyState": "verified_ordinary", "reasonCode": null } }
+          ]
+        }
+      ],
+      "expected": {
+        "catalogComplete": true,
+        "discoveredComboCount": 2,
+        "eligibleComboCount": 1,
+        "requiredSingleCount": 1,
+        "fullStoreCoverageRatio": 0.5
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "mcd-combo-discount-ranking",
+  "version": "1.1.0",
+  "private": true,
+  "description": "麦麦套餐折扣榜 — 通过麦当劳官方 MCP 逐项核价，算出每个套餐的真实折扣并排名。含 Skill 本体、手机端界面与可复现的合规守卫。",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/check.js",
+    "prototype": "node scripts/build-prototype.js",
+    "build:mp": "node scripts/build-mobile-data.js --format weapp",
+    "build:web": "node scripts/build-mobile-data.js --format web",
+    "build:data": "node scripts/build-mobile-data.js --format weapp && node scripts/build-mobile-data.js --format web",
+    "live:sample": "node scripts/live/make-sample-raw.js",
+    "live:rank": "node scripts/live/rank.js"
+  }
+}

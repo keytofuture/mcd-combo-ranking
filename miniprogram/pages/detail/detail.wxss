@@ -1,0 +1,21 @@
+/* pages/detail/detail.wxss — 共享样式见 app.wxss，本页只补差异 */
+
+/* 详情页不在 tabBar 里，底部只需常规留白 */
+.pad {
+  padding-bottom: 60rpx;
+}
+
+/* 不可比原因标签 */
+.reason-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.rtag {
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: #f3ece3;
+  color: #7a6a58;
+  font-size: 22rpx;
+  font-weight: 600;
+}

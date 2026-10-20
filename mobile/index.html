@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1ea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="套餐折扣榜">
+<meta name="format-detection" content="telephone=no">
+<title>套餐折扣榜 · 麦麦</title>
+<style>
+:root{
+  --bg:#f6f1ea; --card:#fff; --ink:#1d2026; --ink2:#5f646d; --ink3:#9aa0a8;
+  --line:#efe7dc; --red:#e8392f; --red-deep:#c81623; --red-soft:#fdeae6;
+  --yellow:#ffc72c; --yellow-soft:#fff3d2;
+  --green:#0f9d6c; --green-soft:#e2f5ec;
+  --gray-soft:#f4f0e9;
+  --radius:18px;
+  --shadow:0 1px 2px rgba(70,45,20,.05),0 8px 24px rgba(70,45,20,.06);
+  --shadow-red:0 8px 20px rgba(232,57,47,.30);
+  --spring:cubic-bezier(.34,1.4,.64,1);
+  --nav-h:44px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+
+/* ================= 应用外壳 ================= */
+.app{
+  height:100dvh;height:100vh;display:flex;flex-direction:column;
+  background:var(--bg);overflow:hidden;position:relative;
+}
+
+/* ---------- 仿小程序导航栏 ---------- */
+.navbar{
+  flex:0 0 auto;position:relative;z-index:20;
+  padding-top:env(safe-area-inset-top,0px);
+  background:rgba(246,241,234,.92);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:.5px solid rgba(210,196,178,.45);
+}
+.navbar-inner{
+  height:var(--nav-h);display:flex;align-items:center;position:relative;padding:0 8px;
+}
+.nav-back{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;color:var(--ink);cursor:pointer;transition:opacity .18s;opacity:1;
+}
+.nav-back.hide{opacity:0;pointer-events:none}
+.nav-back svg{width:11px;height:19px}
+.nav-title{
+  position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:600;
+  letter-spacing:.2px;pointer-events:none;color:var(--ink);
+}
+/* 微信小程序右上角胶囊 */
+.capsule{
+  margin-left:auto;width:87px;height:32px;border-radius:16px;
+  border:.5px solid rgba(0,0,0,.10);background:rgba(255,255,255,.62);
+  display:flex;align-items:center;justify-content:space-around;
+  cursor:pointer;flex:0 0 auto;
+}
+.capsule .dots{display:flex;gap:3px;align-items:center}
+.capsule .dots i{width:4px;height:4px;border-radius:50%;background:#2b2f36;display:block}
+.capsule .sep{width:.5px;height:18px;background:rgba(0,0,0,.12)}
+.capsule .circle{
+  width:16px;height:16px;border-radius:50%;border:1.4px solid #2b2f36;position:relative;
+}
+.capsule .circle::after{
+  content:"";position:absolute;inset:4px;border-radius:50%;background:#2b2f36;
+}
+
+/* ---------- 滚动区 ---------- */
+.scroll{
+  flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;position:relative;
+}
+.scroll::-webkit-scrollbar{width:0;height:0}
+
+/* ---------- 底部 tabbar ---------- */
+.tabbar{
+  flex:0 0 auto;display:flex;background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:.5px solid rgba(210,196,178,.55);
+  padding-bottom:env(safe-area-inset-bottom,0px);z-index:20;
+}
+.tabbar button{
+  flex:1;border:0;background:none;padding:7px 4px 8px;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--ink3);font-size:10.5px;cursor:pointer;transition:color .16s;
+}
+.tabbar button svg{width:23px;height:23px;display:block}
+.tabbar button[aria-selected="true"]{color:var(--red);font-weight:600}
+
+/* ================= 通用 ================= */
+.pad{padding:14px 16px 26px}
+.muted{color:var(--ink2);font-size:13px}
+.tiny{color:var(--ink3);font-size:11.5px}
+.num{font-variant-numeric:tabular-nums}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px}
+.card-pad{padding:15px 16px}
+.card h3{margin:0 0 10px;font-size:14px;font-weight:700;letter-spacing:.2px}
+
+.kv{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:8px 0;font-size:13px}
+.kv + .kv{border-top:.5px dashed var(--line)}
+.kv .k{color:var(--ink2);flex:0 0 auto}
+.kv .v{text-align:right;font-weight:600;word-break:break-all}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;vertical-align:middle}
+.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.gray{background:var(--gray-soft);color:var(--ink2)}
+.tag.yellow{background:var(--yellow-soft);color:#8a6100}
+
+/* ================= 榜单页 ================= */
+.storebar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:13px 16px 9px;
+}
+.storebar .nm{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.livechip{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:999px;background:var(--green-soft);color:var(--green);
+  font-size:11px;font-weight:600;
+}
+.livechip .d{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* 数据越旧越不绿：新鲜度唯一可见的仪表 */
+.livechip.aging{background:#fdf1dd;color:#b0741c}
+.livechip.aging .d{background:#d99a3c;animation:none}
+.livechip.stale,.livechip.unknown{background:#efe7dd;color:#8a7561}
+.livechip.stale .d,.livechip.unknown .d{background:#a08a72;animation:none}
+
+.verdict{padding:0 16px 13px;font-size:15px;font-weight:700;line-height:1.45;letter-spacing:.1px}
+.verdict em{font-style:normal;color:var(--red)}
+.verdict .sub{display:block;margin-top:3px;font-size:12.5px;font-weight:400;color:var(--ink2)}
+
+/* ---- Hero TOP1 ---- */
+.hero{
+  position:relative;overflow:hidden;margin:0 16px 12px;border-radius:22px;padding:16px 17px 15px;
+  background:linear-gradient(140deg,#ef4b36 0%,#d8202a 55%,#c81623 100%);
+  color:#fff;box-shadow:var(--shadow-red);cursor:pointer;
+  transition:transform .14s var(--spring);
+}
+.hero:active{transform:scale(.982)}
+.hero .glow{position:absolute;right:-40px;top:-46px;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,199,44,.30),transparent 70%)}
+.hero .glow2{position:absolute;left:-60px;bottom:-70px;width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.13),transparent 70%)}
+.hero-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  background:var(--yellow);color:#7a4a00;font-size:11px;font-weight:800;letter-spacing:.4px;
+}
+.badge svg{width:11px;height:11px}
+.hero-deal{font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1}
+.hero-name{position:relative;z-index:1;margin-top:11px;font-size:19px;font-weight:800;letter-spacing:.2px;
+  line-height:1.3}
+.hero-comp{position:relative;z-index:1;margin-top:4px;font-size:12px;color:rgba(255,255,255,.80);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-price{position:relative;z-index:1;display:flex;align-items:baseline;gap:9px;margin-top:12px;flex-wrap:wrap}
+.hero-price .p{font-size:29px;font-weight:800;letter-spacing:-1px;line-height:1}
+.hero-price .d{font-size:12.5px;color:rgba(255,255,255,.72);text-decoration:line-through}
+.hero-price .s{
+  margin-left:auto;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.20);
+  font-size:12.5px;font-weight:700;backdrop-filter:blur(4px);
+}
+
+/* ---- 列表 ---- */
+.sec-label{margin:2px 18px 8px;font-size:12px;color:var(--ink3);letter-spacing:.2px}
+.row{
+  display:flex;gap:12px;align-items:center;background:#fff;margin:0 16px 9px;
+  border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);cursor:pointer;
+  transition:transform .13s var(--spring);
+}
+.row:active{transform:scale(.985)}
+.rk{
+  flex:0 0 26px;width:26px;height:26px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:800;background:var(--gray-soft);color:var(--ink2);
+}
+.rk.top2{background:#ffe6cb;color:#a35b00}
+.rk.top3{background:#fff0c8;color:#8a6100}
+.row .mid{flex:1;min-width:0}
+.row .nm{font-size:15px;font-weight:700;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .cmp{margin-top:2px;font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .deal{
+  display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;
+  background:var(--red-soft);color:var(--red);font-size:12px;font-weight:700;
+}
+.row .right{flex:0 0 auto;text-align:right}
+.row .p1{font-size:20px;font-weight:800;color:var(--red);letter-spacing:-.5px;line-height:1.15}
+.row .p2{font-size:11px;color:var(--ink3);text-decoration:line-through;margin-top:1px}
+
+/* ---- 未上榜 ---- */
+.off{margin:16px 16px 6px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.off-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:13px 15px;cursor:pointer;
+}
+.off-head .t{font-size:13px;font-weight:600;color:var(--ink)}
+.off-head .t span{font-weight:400;color:var(--ink3);font-size:11.5px;margin-left:5px}
+.chev{
+  flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--gray-soft);
+  display:flex;align-items:center;justify-content:center;transition:transform .24s var(--spring);
+}
+.chev svg{width:7px;height:12px;color:var(--ink3)}
+.chev.open{transform:rotate(90deg)}
+.off-body{border-top:.5px solid var(--line)}
+.off-note{
+  padding:12px 15px 11px;font-size:12px;line-height:1.65;color:var(--ink2);
+  background:var(--gray-soft);border-bottom:.5px solid var(--line);
+}
+.off-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px;cursor:pointer}
+.off-item + .off-item{border-top:.5px solid var(--line)}
+.off-item .n{font-size:14px;font-weight:600;margin-bottom:2px}
+.off-item .w{font-size:11.5px;color:var(--ink3)}
+.off-price{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+  font-size:12.5px;color:var(--ink3);font-variant-numeric:tabular-nums;
+}
+.off-price i{font-style:normal;color:#c8beb0;font-size:13px}
+
+/* ---- 空态 ---- */
+.empty{text-align:center;padding:50px 30px}
+.empty .art{width:96px;margin:0 auto 16px}
+.empty .bun{height:24px;border-radius:50px 50px 8px 8px;background:#ffe3a3;border:2px solid #e8b23a;margin:0 9px}
+.empty .patty{height:12px;border-radius:5px;background:#f6c453;border:2px solid #e8b23a;margin:4px 0}
+.empty .let{height:10px;border-radius:5px;background:#ef8a3c;border:2px solid #e07840}
+.empty .base{height:22px;border-radius:8px 8px 50px 50px;background:#ffe3a3;border:2px solid #e8b23a;margin:4px 9px 0}
+.empty h4{margin:0 0 6px;font-size:16px}
+.empty p{margin:0;font-size:13px;color:var(--ink2)}
+
+/* ================= 详情页 ================= */
+.dt-head{padding:18px 16px 14px}
+.dt-name{font-size:22px;font-weight:800;letter-spacing:.2px;line-height:1.3}
+.dt-sub{margin-top:5px;font-size:12.5px;color:var(--ink2)}
+.dt-big{
+  margin-top:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+}
+.dt-big .p{font-size:34px;font-weight:800;letter-spacing:-1.4px;color:var(--red);line-height:1}
+.dt-big .d{font-size:13px;color:var(--ink3);text-decoration:line-through}
+.dt-big .off-pill{
+  padding:4px 11px;border-radius:999px;background:var(--red-soft);color:var(--red);
+  font-size:13px;font-weight:800;
+}
+.formula{
+  margin-top:14px;background:var(--gray-soft);border-radius:13px;padding:13px 14px;text-align:center;
+}
+.formula .eq{font-size:15px;font-weight:600;letter-spacing:.2px}
+.formula .eq b{color:var(--red);font-size:18px;font-weight:800}
+.formula .why{margin-top:5px;font-size:11.5px;color:var(--ink3)}
+
+.comp{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;font-size:14px}
+.comp + .comp{border-top:.5px dashed var(--line)}
+.comp .l{flex:1;min-width:0}
+.comp .l .t{font-weight:600}
+.comp .l .q{font-size:12px;font-weight:400;color:var(--ink3);margin-left:3px}
+.comp .l .x{font-size:11px;color:var(--ink3);margin-top:2px}
+.comp .r{flex:0 0 auto;text-align:right;font-size:13px}
+.comp .r .u{font-weight:600;font-variant-numeric:tabular-nums}
+.comp .r .s{font-size:11px;color:var(--ink3);margin-top:1px;font-variant-numeric:tabular-nums}
+.comp .r .un{color:var(--ink3);font-size:12px}
+.total{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:6px;padding-top:12px;border-top:1.5px solid var(--ink);font-size:14px;font-weight:700;
+}
+.total .v{font-size:18px;font-variant-numeric:tabular-nums}
+
+/* 折叠块 */
+.fold{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:10px}
+.fold-head{display:flex;align-items:center;gap:9px;padding:14px 16px;cursor:pointer}
+.fold-head .t{flex:1;min-width:0;font-size:13.5px;font-weight:600}
+.fold-head .hint{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold-body{padding:2px 16px 14px;border-top:.5px solid var(--line)}
+
+/* ================= 数据来源页 ================= */
+.src-hero{
+  margin:0 16px 12px;padding:18px 17px;border-radius:22px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,#2c3038,#1a1d22);
+}
+.src-hero .glow{position:absolute;right:-50px;top:-50px;width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,199,44,.26),transparent 70%)}
+.src-hero h2{position:relative;z-index:1;margin:0;font-size:19px;font-weight:800;letter-spacing:.2px}
+.src-hero p{position:relative;z-index:1;margin:8px 0 0;font-size:12.5px;line-height:1.65;color:rgba(255,255,255,.80)}
+
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding:0 16px}
+.pill{
+  padding:5px 11px;border-radius:999px;background:#fff;box-shadow:var(--shadow);
+  font-size:12px;font-weight:600;color:var(--ink2);
+}
+.pill b{color:var(--red);font-weight:800}
+
+.devtable{margin-top:2px}
+.devrow{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13px}
+.devrow + .devrow{border-top:.5px dashed var(--line)}
+.devrow .l{flex:1;min-width:0}
+.devrow .l .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.devrow .l .s{font-size:11.5px;color:var(--ink2);margin-top:2px;font-variant-numeric:tabular-nums}
+.devrow .pct{flex:0 0 auto;text-align:right;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--green)}
+.devrow .pct.warn{color:#d98324}
+
+/* ================= Toast ================= */
+.toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  transform:translate(-50%,10px);max-width:78%;padding:10px 16px;border-radius:12px;
+  background:rgba(29,32,38,.93);color:#fff;font-size:13px;line-height:1.5;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .22s,transform .28s var(--spring);z-index:60;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ================= 页面切换 ================= */
+@keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.anim-slide{animation:slideIn .26s var(--spring) both}
+.anim-fade{animation:fadeUp .24s ease both}
+
+/* 内容进入的轻量错峰 */
+.stagger>*{animation:fadeUp .3s ease both}
+.stagger>*:nth-child(1){animation-delay:.02s}
+.stagger>*:nth-child(2){animation-delay:.05s}
+.stagger>*:nth-child(3){animation-delay:.08s}
+.stagger>*:nth-child(4){animation-delay:.11s}
+.stagger>*:nth-child(5){animation-delay:.14s}
+.stagger>*:nth-child(n+6){animation-delay:.17s}
+
+/* ================= 桌面预览（手机仍在移动端全屏） ================= */
+@media (min-width:600px){
+  body{display:flex;align-items:center;justify-content:center;background:#e6dfd3;padding:20px}
+  .app{
+    width:420px;height:min(880px,calc(100dvh - 40px));border-radius:32px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(60,40,20,.12),0 34px 70px rgba(60,40,20,.20);
+    border:1px solid #ded5c7;
+  }
+  .toast{position:absolute;bottom:96px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-back hide" id="navBack" role="button" aria-label="返回">
+        <svg viewBox="0 0 11 19" fill="none"><path d="M9.5 1.5 2 9.5l7.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-title" id="navTitle">套餐折扣榜</div>
+      <div class="capsule" id="capsule" role="button" aria-label="更多">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="sep"></span>
+        <span class="circle"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="scroll" id="scroll"></main>
+
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var D = window.MCD_DATA;
+  var SRC = D.source;
+  var $scroll = document.getElementById('scroll');
+  var $view = null;
+
+  /* ---------------- 状态 ---------------- */
+  var S = {
+    tab: 'ranking',          // ranking | source
+    detailId: null,          // 详情页
+    fold: { off: false, evid: false, policy: false, raw: false },
+    scrollTop: {}
+  };
+
+  /* ---------------- 工具 ---------------- */
+  function yuan(c) { return c == null ? '—' : (c / 100).toFixed(2); }
+  function pct(n) { return (n / 100).toFixed(1); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1900);
+  }
+  function chev(open) {
+    return '<span class="chev' + (open ? ' open' : '') + '">' +
+      '<svg viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  }
+  function findCombo(id) {
+    var i;
+    for (i = 0; i < D.ranking.length; i++) if (D.ranking[i].id === id) return { item: D.ranking[i], comparable: true };
+    for (i = 0; i < D.notComparable.length; i++) if (D.notComparable[i].id === id) return { item: D.notComparable[i], comparable: false };
+    return null;
+  }
+
+  /* ---------------- 榜单页 ---------------- */
+  // 数据多旧要算出来。写死「19:49 现查」在数据过期时就是不实陈述。
+  function ageInfo() {
+    var t = Date.parse(SRC.observedISO), now = Date.now();
+    if (!isFinite(t)) return { level: 'unknown', text: '时间未知' };
+    var mins = Math.floor((now - t) / 60000);
+    if (mins < 5) return { level: 'fresh', text: '刚刚' };
+    if (mins < 60) return { level: 'fresh', text: mins + ' 分钟前' };
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return { level: 'fresh', text: hours + ' 小时前' };
+    var days = Math.floor(hours / 24);
+    if (days === 1) return { level: 'aging', text: '昨天' };
+    if (days < 3) return { level: 'aging', text: days + ' 天前' };
+    if (days < 7) return { level: 'stale', text: days + ' 天前' };
+    if (days < 60) return { level: 'stale', text: Math.floor(days / 7) + ' 周前' };
+    return { level: 'stale', text: Math.floor(days / 30) + ' 个月前' };
+  }
+
+  function renderRanking() {
+    var r = D.ranking, h = [];
+    var age = ageInfo();
+
+    h.push('<div class="storebar">' +
+      '<span class="nm">' + esc(SRC.store) + ' · ' + esc(SRC.channelLabel) + '</span>' +
+      '<span class="livechip ' + age.level + '"><i class="d"></i>' + esc(age.text) + '抓取</span>' +
+      '</div>');
+
+    var top = r[0];
+    if (top) {
+      h.push('<div class="verdict">' +
+        D.coverage.discoveredComboCount + ' 个在售套餐里，<em>' + r.length + ' 个</em>算得出真实折扣。' +
+        '<span class="sub">最划算的是' + esc(top.name) + '，' + esc(top.discountText) + '，省 ¥' + yuan(top.A) + '。</span>' +
+        '</div>');
+      h.push(heroCard(top));
+      h.push('<div class="sec-label">其余 ' + (r.length - 1) + ' 个 · 按折扣从低到高</div>');
+      for (var i = 1; i < r.length; i++) h.push(rowCard(r[i]));
+    } else {
+      h.push('<div class="empty"><div class="art"><div class="bun"></div><div class="patty"></div>' +
+        '<div class="let"></div><div class="base"></div></div>' +
+        '<h4>这一轮没有可比套餐</h4><p>在 WorkBuddy 里让我重新抓一次即可。</p></div>');
+    }
+
+    if (D.notComparable.length) {
+      var reasonList = D.notComparable.map(function (n) { return n.reasonTexts.join('、'); });
+      var allSame = reasonList.filter(function (v, i, a) { return a.indexOf(v) === i; }).length === 1;
+      h.push('<div class="off">' +
+        '<div class="off-head" data-fold="off"><div class="t">另外 ' + D.notComparable.length + ' 个没算进来' +
+        '<span>' + (S.fold.off ? '点这里收起' : '点开看原因') + '</span></div>' + chev(S.fold.off) + '</div>');
+      if (S.fold.off) {
+        h.push('<div class="off-body">');
+        if (allSame) {
+          h.push('<div class="off-note">这 ' + D.notComparable.length +
+            ' 个都卡在同一件事上：组成里有单品麦当劳不单独卖（多数是套餐专属的饮料编码），拿不到独立售价。' +
+            '硬算出来的数就是编的，所以宁可不上榜。</div>');
+        }
+        D.notComparable.forEach(function (n) {
+          h.push('<div class="off-item" data-detail="' + esc(n.id) + '">' +
+            '<div style="min-width:0"><div class="n">' + esc(n.name) + '</div>' +
+            (allSame ? '' : '<div class="w">' + esc(n.reasonTexts.join('、')) + '</div>') +
+            '</div><span class="off-price">¥' + yuan(n.P) + '<i>›</i></span></div>');
+        });
+        h.push('</div>');
+      }
+      h.push('</div>');
+    }
+
+    h.push('<div class="tiny" style="text-align:center;padding:14px 24px 4px;line-height:1.6">' +
+      '报价来自麦当劳官方 MCP · ' + esc(SRC.observedDisplay) + '<br>' +
+      '价格随时会变，下单前以麦当劳 App 为准</div>');
+    h.push('<div style="height:12px"></div>');
+
+    return '<div class="pad stagger" style="padding-top:0">' + h.join('') + '</div>';
+  }
+
+  function heroCard(it) {
+    return '<div class="hero" data-detail="' + esc(it.id) + '">' +
+      '<div class="glow"></div><div class="glow2"></div>' +
+      '<div class="hero-top">' +
+        '<span class="badge">' +
+          '<svg viewBox="0 0 12 12" fill="none"><path d="M6 .8l1.6 3.4 3.7.5-2.7 2.6.7 3.7L6 9.3l-3.3 1.7.7-3.7L.7 4.7l3.7-.5z" fill="#7a4a00"/></svg>' +
+          '本店最划算</span>' +
+        '<span class="hero-deal">' + esc(it.discountText) + '</span>' +
+      '</div>' +
+      '<div class="hero-name">' + esc(it.name) + '</div>' +
+      '<div class="hero-comp">' + esc(it.compositionSummary) + '</div>' +
+      '<div class="hero-price"><span class="p">¥' + yuan(it.P) + '</span>' +
+        '<span class="d">单买 ¥' + yuan(it.D) + '</span>' +
+        '<span class="s">' + esc(it.savedAmountText) + '</span></div>' +
+      '</div>';
+  }
+
+  function rowCard(it) {
+    var cls = it.rank === 2 ? ' top2' : (it.rank === 3 ? ' top3' : '');
+    return '<div class="row" data-detail="' + esc(it.id) + '">' +
+      '<div class="rk' + cls + '">' + it.rank + '</div>' +
+      '<div class="mid"><div class="nm">' + esc(it.name) + '</div>' +
+        '<div class="cmp">' + esc(it.compositionSummary) + '</div>' +
+        '<span class="deal">' + esc(it.discountText) + '</span></div>' +
+      '<div class="right"><div class="p1">¥' + yuan(it.P) + '</div>' +
+        '<div class="p2">单买 ¥' + yuan(it.D) + '</div></div>' +
+      '</div>';
+  }
+
+  /* ---------------- 详情页 ---------------- */
+  function renderDetail() {
+    var hit = findCombo(S.detailId);
+    if (!hit) {
+      return '<div class="pad"><div class="empty"><h4>这个套餐已经不在本次结果里了</h4>' +
+        '<p>返回榜单看最新结果。</p></div></div>';
+    }
+    var it = hit.item, h = [];
+
+    h.push('<div class="dt-head">' +
+      '<div class="dt-name">' + esc(it.name) + '</div>' +
+      '<div class="dt-sub">' + esc(SRC.store) + ' · ' + esc(SRC.channelLabel) + '</div>');
+    if (hit.comparable) {
+      h.push('<div class="dt-big"><span class="p">¥' + yuan(it.P) + '</span>' +
+        '<span class="d">单买 ¥' + yuan(it.D) + '</span>' +
+        '<span class="off-pill">' + esc(it.discountText) + '</span></div>');
+    } else {
+      h.push('<div class="dt-big"><span class="p">¥' + yuan(it.P) + '</span>' +
+        '<span class="tag gray">暂不可比</span></div>');
+    }
+    h.push('</div>');
+
+    // 折扣算式
+    if (hit.comparable) {
+      h.push('<div class="card"><div class="card-pad">' +
+        '<div class="formula"><div class="eq">¥' + yuan(it.P) + ' ÷ ¥' + yuan(it.D) + ' = <b>' +
+          esc(it.discountText) + '</b></div>' +
+          '<div class="why">分开买 ¥' + yuan(it.D) + '，打包 ¥' + yuan(it.P) +
+          '，少花 ¥' + yuan(it.A) + '</div></div>' +
+        '<div style="margin-top:12px">' +
+          '<div class="kv"><span class="k">套餐实付价 P</span><span class="v num">¥' + yuan(it.P) + '</span></div>' +
+          '<div class="kv"><span class="k">逐项单买合计 D</span><span class="v num">¥' + yuan(it.D) + '</span></div>' +
+          '<div class="kv"><span class="k">省下</span><span class="v num" style="color:var(--red)">¥' + yuan(it.A) +
+            '（' + esc(it.savedPercentText) + '）</span></div>' +
+        '</div>' +
+        '</div></div>');
+    } else {
+      h.push('<div class="card"><div class="card-pad">' +
+        '<h3>为什么没算进榜</h3>' +
+        '<div class="muted" style="line-height:1.7">' +
+        '这个套餐的组成里有单品麦当劳不单独卖，拿不到独立售价。' +
+        '硬算出来的 D 就是编的，所以宁可不上榜。</div>' +
+        '</div></div>');
+    }
+
+    // 组成明细
+    var comps = it.components || [];
+    var knownSum = 0, missingCount = 0;
+    comps.forEach(function (c) {
+      if (c.unitPriceCents == null) missingCount += 1;
+      else knownSum += c.unitPriceCents * c.quantity;
+    });
+    h.push('<div class="card"><div class="card-pad"><h3>默认组成 · ' + comps.length + ' 项</h3>');
+    if (comps.length) {
+      comps.forEach(function (c) {
+        var unknown = c.unitPriceCents == null;
+        var note = c.priceSource === 'menu-name-match' ? '按零售单品价估'
+          : (c.priceSource === 'menu-price' ? '单价取自菜单' : '');
+        h.push('<div class="comp">' +
+          '<div class="l"><div class="t">' + esc(c.name) +
+            ' <span class="q">×' + c.quantity + '</span>' +
+            (c.isGift ? ' <span class="tag green">赠品</span>' : '') + '</div>' +
+            (note ? '<div class="x">' + note + '</div>' : '') + '</div>' +
+          '<div class="r">' + (unknown
+            ? '<span class="un">未单独售卖</span>'
+            : '<div class="u">¥' + yuan(c.unitPriceCents) + '</div>' +
+              (c.quantity > 1 ? '<div class="s">合计 ¥' + yuan(c.unitPriceCents * c.quantity) + '</div>' : '')) +
+          '</div></div>');
+      });
+      h.push('<div class="total"><span>' +
+        (it.D != null ? '逐项合计' : '已知部分小计') + '</span><span class="v">' +
+        (it.D != null ? '¥' + yuan(it.D) : '¥' + yuan(knownSum)) + '</span></div>');
+      if (it.D == null && missingCount > 0) {
+        h.push('<div class="tiny" style="text-align:right;margin-top:6px">还有 ' + missingCount +
+          ' 项没单独标价，所以这个数不是完整的单买合计</div>');
+      }
+    } else {
+      h.push('<div class="muted">没取到这个套餐的组成说明，所以不参与排名。</div>');
+    }
+    h.push('</div></div>');
+
+    // 证据折叠
+    h.push('<div class="fold"><div class="fold-head" data-fold="evid">' +
+      '<span class="t">这条数据的出处</span><span class="hint">' + esc(SRC.observedDisplay) + '</span>' +
+      chev(S.fold.evid) + '</div>');
+    if (S.fold.evid) {
+      h.push('<div class="fold-body">' +
+        '<div class="kv"><span class="k">报价时间</span><span class="v">' + esc(SRC.observedDisplay) + '</span></div>' +
+        '<div class="kv"><span class="k">门店</span><span class="v">' + esc(SRC.store) + '</span></div>' +
+        '<div class="kv"><span class="k">套餐编码</span><span class="v">' + esc(it.id) + '</span></div>' +
+        '<div class="kv"><span class="k">套餐价来源</span><span class="v">' +
+          (it.comboPriceSource === 'menu-price-override' ? '菜单价（接口价格偏离已覆盖）' : 'MCP 核价接口') + '</span></div>' +
+        '<div class="kv"><span class="k">菜单标称原价</span><span class="v">' +
+          (it.menuOriginalCents == null ? '—' : '¥' + yuan(it.menuOriginalCents)) + '</span></div>' +
+        '<div class="tiny" style="margin-top:10px;line-height:1.65">' +
+          '菜单标称原价只作参考，不参与计算。折扣一律用逐项单买合计 D 做分母。' +
+        '</div></div>');
+    }
+    h.push('</div>');
+
+    h.push('<div style="height:14px"></div>');
+    return '<div class="pad anim-slide" style="padding-top:0">' + h.join('') + '</div>';
+  }
+
+  /* ---------------- 数据来源页 ---------------- */
+  function renderSource() {
+    var h = [];
+    var cov = D.coverage;
+
+    h.push('<div class="src-hero"><div class="glow"></div>' +
+      '<h2>这些价格不是编的</h2>' +
+      '<p>' + esc(SRC.observedDisplay) + '，通过麦当劳官方 MCP 服务（mcp.mcd.cn）核了' +
+      esc(SRC.store) + '的在售套餐：' + SRC.toolCalls + ' 次工具调用，' +
+      cov.quoteSuccessCount + ' 个单品报价成功，' + cov.quoteFailureCount + ' 个失败。</p></div>');
+
+    h.push('<div class="pill-row">' +
+      '<span class="pill"><b>' + cov.discoveredComboCount + '</b> 个套餐</span>' +
+      '<span class="pill"><b>' + D.ranking.length + '</b> 个划算</span>' +
+      '<span class="pill"><b>' + SRC.toolCalls + '</b> 次调用</span>' +
+      '</div>');
+
+    h.push('<div class="card"><div class="card-pad"><h3>折扣是怎么算的</h3>' +
+      '<div class="formula"><div class="eq">P ÷ D = 折扣比</div>' +
+      '<div class="why">P 是套餐实付价，D 是把这个套餐里每样东西按单点价加起来</div></div>' +
+      '<div class="muted" style="margin-top:12px;line-height:1.75">' +
+      '所以「5.7 折」的意思很具体：这堆东西分开买要 ¥47.00，打包买只要 ¥26.90。</div>' +
+      '</div></div>');
+
+    // 核心验证
+    var devs = D.ranking.filter(function (r) { return r.menuOriginalCents; });
+    var tight = devs.filter(function (r) {
+      return Math.abs(r.D - r.menuOriginalCents) / r.menuOriginalCents <= 0.015;
+    });
+    h.push('<div class="card"><div class="card-pad"><h3>为什么不信菜单上的"原价"</h3>' +
+      '<div class="muted" style="line-height:1.75">' +
+      '麦当劳菜单里每个套餐都带一个标称原价，但那是运营填的数字，不是你真的会付的钱。' +
+      '所以我把套餐拆成单品，逐个调价重算 D，再拿它跟菜单标称原价比一遍——' +
+      '<b style="color:var(--ink)">' + devs.length + ' 个里 ' + tight.length + ' 个偏差都在 1.5% 以内</b>，说明拆解没拆错。</div>' +
+      '<div class="devtable">');
+    devs.forEach(function (r) {
+      var dev = Math.abs(r.D - r.menuOriginalCents) / r.menuOriginalCents;
+      h.push('<div class="devrow">' +
+        '<div class="l"><div class="n">' + esc(r.name) + '</div>' +
+        '<div class="s">我算 ¥' + yuan(r.D) + ' · 菜单标称 ¥' + yuan(r.menuOriginalCents) + '</div></div>' +
+        '<span class="pct' + (dev > 0.015 ? ' warn' : '') + '">' + (dev * 100).toFixed(1) + '%</span></div>');
+    });
+    h.push('</div>' +
+      '<div class="tiny" style="margin-top:10px;line-height:1.65">' +
+      '右侧百分比 = 我算出的 D 与菜单标称原价的偏差，绿色为 ≤1.5%。' +
+      '双人餐偏得多，是因为菜单标的原价对应的是另一套组成，不是同一份东西。' +
+      '</div></div></div>');
+
+    // 未上榜
+    h.push('<div class="fold"><div class="fold-head" data-fold="policy">' +
+      '<span class="t">没上榜的 ' + D.notComparable.length + ' 个，都因为同一件事</span>' +
+      chev(S.fold.policy) + '</div>');
+    if (S.fold.policy) {
+      h.push('<div class="fold-body"><div class="muted" style="line-height:1.75">' +
+        '它们的组成里有单品麦当劳不单独卖——最常见的是套餐专属的可乐编码，单独核价会返回 ¥0。' +
+        '拿不到独立售价，D 就是编的，所以宁可不上榜，也不给一个假数字。</div>' +
+        '<div class="tiny" style="margin-top:8px">实际缺价单品：' + cov.missingPriceCount + ' 个</div>' +
+        '</div>');
+    }
+    h.push('</div>');
+
+    // 口径
+    h.push('<div class="fold"><div class="fold-head" data-fold="raw">' +
+      '<span class="t">口径声明</span>' + chev(S.fold.raw) + '</div>');
+    if (S.fold.raw) {
+      h.push('<div class="fold-body">' +
+        '<div class="kv"><span class="k">价格口径</span><span class="v">普通可购价</span></div>' +
+        '<div class="kv"><span class="k">不含</span><span class="v">个人券 / 付费会员 / 拼单满减</span></div>' +
+        '<div class="kv"><span class="k">金额范围</span><span class="v">只含餐品，配送包装另计</span></div>' +
+        '<div class="kv"><span class="k">采集渠道</span><span class="v">本次仅到店自取</span></div>' +
+        '<div class="kv"><span class="k">服务端</span><span class="v">' + esc(SRC.server) + '</span></div>' +
+        '<div class="kv"><span class="k">同名匹配补价</span><span class="v">' + D.honesty.nameMatchedCount + ' 项 / 共 ' +
+          D.honesty.componentCount + ' 项</span></div>' +
+        '<div class="tiny" style="margin-top:10px;line-height:1.65">' +
+        '部分套餐内单品没有独立零售价，用同名零售单品价格补位，已在上表披露数量。' +
+        '这些补价项里任何一项取不到，该套餐就直接不上榜。</div>' +
+        '</div>');
+    }
+    h.push('</div>');
+
+    h.push('<div class="tiny" style="text-align:center;padding:10px 30px 4px;line-height:1.7">' +
+      'WorkBuddy × 麦当劳 MCP 创意开发大赛参赛作品<br>仅供体验，不构成购买建议</div>');
+    h.push('<div style="height:12px"></div>');
+
+    return '<div class="pad stagger" style="padding-top:14px">' + h.join('') + '</div>';
+  }
+
+  /* ---------------- 外壳 ---------------- */
+  var TABS = [
+    { id: 'ranking', label: '套餐榜', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg>' },
+    { id: 'source', label: '数据来源', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg>' }
+  ];
+
+  function renderShell() {
+    var inDetail = Boolean(S.detailId);
+    document.getElementById('navBack').className = 'nav-back' + (inDetail ? '' : ' hide');
+    document.getElementById('navTitle').textContent = inDetail
+      ? '套餐详情'
+      : (S.tab === 'ranking' ? '套餐折扣榜' : '数据来源');
+    document.getElementById('tabbar').innerHTML = TABS.map(function (t) {
+      var on = !inDetail && S.tab === t.id;
+      return '<button data-tab="' + t.id + '" aria-selected="' + on + '">' + t.icon +
+        '<span>' + t.label + '</span></button>';
+    }).join('');
+    document.getElementById('tabbar').style.display = inDetail ? 'none' : 'flex';
+  }
+
+  function render(resetScroll) {
+    renderShell();
+    var html = S.detailId ? renderDetail() : (S.tab === 'ranking' ? renderRanking() : renderSource());
+    $scroll.innerHTML = html;
+    if (resetScroll !== false) $scroll.scrollTop = 0;
+    bind();
+  }
+
+  function bind() {
+    var i;
+
+    var back = document.getElementById('navBack');
+    back.onclick = function () {
+      if (!S.detailId) return;
+      S.detailId = null;
+      render(false);
+      $scroll.scrollTop = S.scrollTop.list || 0;
+    };
+
+    var tabs = document.querySelectorAll('[data-tab]');
+    for (i = 0; i < tabs.length; i++) {
+      tabs[i].onclick = function () {
+        var id = this.getAttribute('data-tab');
+        if (id === S.tab && !S.detailId) return;
+        if (!S.detailId) S.scrollTop[S.tab] = $scroll.scrollTop;
+        S.tab = id;
+        S.detailId = null;
+        render();
+      };
+    }
+
+    var rows = document.querySelectorAll('[data-detail]');
+    for (i = 0; i < rows.length; i++) {
+      rows[i].onclick = function () {
+        if (!S.detailId) S.scrollTop.list = $scroll.scrollTop;
+        S.detailId = this.getAttribute('data-detail');
+        render();
+      };
+    }
+
+    var folds = document.querySelectorAll('[data-fold]');
+    for (i = 0; i < folds.length; i++) {
+      folds[i].onclick = function () {
+        var k = this.getAttribute('data-fold');
+        var top = $scroll.scrollTop;
+        S.fold[k] = !S.fold[k];
+        render(false);
+        $scroll.scrollTop = top;
+      };
+    }
+  }
+
+  document.getElementById('capsule').onclick = function () {
+    toast('这是小程序体验版：界面结构与 miniprogram/ 一致，数据由麦当劳 MCP 实测');
+  };
+
+  /* 防止 iOS 双击缩放 */
+  var lastTouch = 0;
+  document.addEventListener('touchend', function (e) {
+    var now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+
+  render();
+})();
+</script>
+</body>
+</html>

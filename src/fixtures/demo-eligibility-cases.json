@@ -1,0 +1,167 @@
+{
+  "mode": "demo",
+  "note": "资格判定与三值条件场景（v1.1 PRD R02/R04/R05/R06/R07、T04/T05/T07/T08/T09/T12/T14/T23）。全部为合成数据。",
+  "observationTemplate": {
+    "pricePolicyState": "verified_ordinary",
+    "evidenceType": "verified_quote",
+    "quotedQuantity": 1,
+    "amountScope": "default_combo_food",
+    "feeSplitState": "food_only_verified",
+    "saleState": "available",
+    "conditionState": "verified_same"
+  },
+  "componentTemplate": {
+    "pricePolicyState": "verified_ordinary",
+    "amountScope": "single_unit_food",
+    "feeSplitState": "food_only_verified",
+    "saleState": "available",
+    "conditionState": "verified_same",
+    "quotedQuantity": 1
+  },
+  "cases": [
+    {
+      "id": "T04",
+      "title": "必需组件缺价：不给折扣与排名",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760 },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 2400 },
+          { "variantId": "y", "quantity": 1, "unitPriceCents": null }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["COMPONENT_PRICE_MISSING"] }
+    },
+    {
+      "id": "T05",
+      "title": "同名中杯/大杯：不合并、不按容量折算，分别计入 D",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 5000,
+        "observation": { "amountCents": 5000 },
+        "components": [
+          { "variantId": "demo-burger-mid", "quantity": 1, "unitPriceCents": 2400 },
+          { "variantId": "demo-burger-large", "quantity": 1, "unitPriceCents": 3200 }
+        ]
+      },
+      "expected": { "eligible": true, "denominatorCents": 5600 }
+    },
+    {
+      "id": "T07",
+      "title": "起送未达：可入榜并标需凑单；条件未知如实显示",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 1500,
+        "purchaseCondition": "needs_add_on",
+        "observation": { "amountCents": 1500, "purchaseCondition": "needs_add_on" },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 2000 }
+        ]
+      },
+      "expected": { "eligible": true, "purchaseCondition": "needs_add_on", "denominatorCents": 2000 }
+    },
+    {
+      "id": "T08",
+      "title": "会员或定向权益无法排除：退出普通价主榜",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760, "pricePolicyState": "requires_entitlement" },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 4600 }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["ENTITLEMENT_UNKNOWN"] }
+    },
+    {
+      "id": "T09-mismatch",
+      "title": "跨供餐条件（即使只差 3 分钟）：不可比",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760, "conditionState": "mismatch" },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 4600 }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["CONDITION_MISMATCH"] }
+    },
+    {
+      "id": "T09-crossbatch",
+      "title": "跨批借价：组件报价引自另一批次 -> 不作为单份基准",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760 },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 4600, "quotedQuantity": 2 }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["QUOTE_NOT_SINGLE_UNIT"] }
+    },
+    {
+      "id": "T12-soldout",
+      "title": "来源确认售罄：退出本批可购主榜",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760, "saleState": "sold_out" },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 4600 }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["SALE_NOT_AVAILABLE"], "saleState": "sold_out" }
+    },
+    {
+      "id": "T12-network",
+      "title": "网络失败：记为 unknown，不推断停售",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": null,
+        "observation": { "amountCents": null, "saleState": "unknown", "reasonCode": "REQUEST_FAILED" },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": null, "saleState": "unknown", "reasonCode": "REQUEST_FAILED" }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["AMOUNT_MISSING"], "saleState": "unknown", "notWithdrawn": true }
+    },
+    {
+      "id": "T14",
+      "title": "多件购物车行价/两份总额：不作为单份基准",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760 },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 750, "quotedQuantity": 2 }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["QUOTE_NOT_SINGLE_UNIT"] }
+    },
+    {
+      "id": "T23-unknown",
+      "title": "供餐条件未知：不可比（null 与 null 不表示一致）",
+      "combo": {
+        "defaultConfigVerified": true,
+        "comboPriceCents": 2760,
+        "observation": { "amountCents": 2760, "conditionState": null },
+        "components": [
+          { "variantId": "x", "quantity": 1, "unitPriceCents": 4600, "conditionState": null }
+        ]
+      },
+      "expected": { "eligible": false, "reasonContains": ["CONDITION_UNKNOWN"] }
+    },
+    {
+      "id": "T24-default-unknown",
+      "title": "无默认配置/组成未知：不可比，但详情仍可打开",
+      "combo": {
+        "defaultConfigVerified": false,
+        "comboPriceCents": null,
+        "observation": { "amountCents": null },
+        "components": []
+      },
+      "expected": { "eligible": false, "reasonContains": ["DEFAULT_CONFIG_UNKNOWN"] }
+    }
+  ]
+}

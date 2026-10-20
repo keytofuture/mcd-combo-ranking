@@ -1,0 +1,128 @@
+<!-- P01 套餐榜：首屏只留结论与榜单 -->
+<view class="storebar">
+  <text class="nm">{{src.store}} · {{src.channelLabel}}</text>
+  <view class="livechip {{age.level}}">
+    <view class="dot"></view>
+    <text>{{age.text}}抓取</text>
+  </view>
+</view>
+
+<!-- 数据旧了就说出来，不假装新鲜 -->
+<view class="stale-tip" wx:if="{{age.level === 'stale'}}" bindtap="onGoSource">
+  <text>这份价格是{{age.text}}抓的，现在可能已经变了</text>
+  <text class="arw">›</text>
+</view>
+
+<block wx:if="{{hero}}">
+  <view class="verdict">
+    <text>{{coverage.discoveredComboCount}} 个在售套餐里，</text>
+    <text class="hl">{{ranking.length}} 个</text>
+    <text>算得出真实折扣。</text>
+    <text class="sub">最划算的是{{hero.name}}，{{hero.discountText}}，省 {{hero.savedAmountPlain}}。</text>
+  </view>
+
+  <!-- 第一名 Hero -->
+  <view class="hero" data-id="{{hero.id}}" bindtap="onOpenCombo">
+    <view class="glow"></view>
+    <view class="glow2"></view>
+    <view class="hero-top">
+      <view class="badge">
+        <view class="star"></view>
+        <text>本店最划算</text>
+      </view>
+      <text class="hero-deal">{{hero.discountText}}</text>
+    </view>
+    <view class="hero-name">{{hero.name}}</view>
+    <view class="hero-comp">{{hero.compositionSummary}}</view>
+    <view class="hero-price">
+      <text class="p">¥{{hero.priceText}}</text>
+      <text class="d">单买 ¥{{hero.denominatorText}}</text>
+      <text class="s">{{hero.savedAmountText}}</text>
+    </view>
+  </view>
+
+  <view class="sec-label">其余 {{rest.length}} 个 · 按折扣从低到高</view>
+
+  <view
+    class="row"
+    wx:for="{{rest}}"
+    wx:key="id"
+    data-id="{{item.id}}"
+    bindtap="onOpenCombo"
+  >
+    <view class="rk top{{item.rank}}">{{item.rank}}</view>
+    <view class="mid">
+      <view class="nm">{{item.name}}</view>
+      <view class="cmp">{{item.compositionSummary}}</view>
+      <view class="deal">{{item.discountText}}</view>
+    </view>
+    <view class="right">
+      <view class="p1">¥{{item.priceText}}</view>
+      <view class="p2">单买 ¥{{item.denominatorText}}</view>
+    </view>
+  </view>
+
+  <!-- 分开买反而更便宜：不进榜，但值得单独说一句 -->
+  <view class="unfav" wx:if="{{unfavorable.length}}">
+    <view class="unfav-head">另外 {{unfavorable.length}} 个，打包买反而更贵</view>
+    <view
+      class="unfav-item"
+      wx:for="{{unfavorable}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onOpenCombo"
+    >
+      <view class="l">
+        <view class="n">{{item.name}}</view>
+        <view class="w">套餐 ¥{{item.priceText}} · 单买 ¥{{item.denominatorText}}</view>
+      </view>
+      <text class="tag">{{item.savedPercentText}}</text>
+    </view>
+  </view>
+
+  <!-- 没算进来的：默认折叠 -->
+  <view class="off" wx:if="{{notComparable.length}}">
+    <view class="off-head" bindtap="onToggleOff">
+      <view class="t">
+        <text>另外 {{notComparable.length}} 个没算进来</text>
+        <text class="hint">{{showOff ? '点这里收起' : '点开看原因'}}</text>
+      </view>
+      <view class="chev {{showOff ? 'open' : ''}}">›</view>
+    </view>
+    <block wx:if="{{showOff}}">
+      <view class="off-note" wx:if="{{notComparableNote}}">{{notComparableNote}}</view>
+      <view
+        class="off-item"
+        wx:for="{{notComparable}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onOpenCombo"
+      >
+        <view>
+          <view class="n">{{item.name}}</view>
+          <view class="w" wx:if="{{!notComparableNote}}">{{item.reasonText}}</view>
+        </view>
+        <view class="off-price">
+          <text>¥{{item.priceText}}</text>
+          <text class="arw">›</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="foot-note">
+    <view>报价来自麦当劳官方 MCP · {{src.observedDisplay}}</view>
+    <view>价格随时会变，下单前以麦当劳 App 为准</view>
+  </view>
+</block>
+
+<view class="empty" wx:else>
+  <view class="art">
+    <view class="bun"></view>
+    <view class="patty"></view>
+    <view class="let"></view>
+    <view class="base"></view>
+  </view>
+  <view class="big">这一轮没有可比套餐</view>
+  <view class="sub">在 WorkBuddy 里让我重新抓一次即可。</view>
+</view>

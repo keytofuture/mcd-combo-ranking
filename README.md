@@ -12,6 +12,8 @@
 
 > 上面这行结论不是编的例子：2026-10-20 深圳桂庙路店真实核价，43 个在售套餐里 16 个可逐项核价，这是第一名。
 
+**手机上直接看**：https://mcd-combo-ranking.app.workbuddy.host/?sharecode=M5L55JYOSG （真实快照，页面会标出「几分钟前抓取」）
+
 **参赛作品说明**：本仓库是「麦当劳程序员创意开发大赛」参赛 Skill。要求的五个文件均在根目录：`README.md`、`CONTEST_DECLARATION.md`、`MCP_INTEGRATION.md`、`mcp-config.example.json`、`workbuddy.md`。
 
 ---
